@@ -1,29 +1,29 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr,Field
 from typing import Optional
 class UserCreate(BaseModel):
     name:str
-    email:str
-    password:str
+    email:EmailStr
+    password:str=Field(...,min_length=8)
 
 class UserLogin(BaseModel):
-    email:str
-    password:str
+    email:EmailStr
+    password:str=Field(...,min_length=8)
 
 class UserEdit(BaseModel):
     name: str
-    email: str
+    email: EmailStr
 
 class User(BaseModel):
     id:int
     name:str
     email:str
-    role:Optional[str]
+    role:str="user"
     class Config:
         from_attributes=True
 
 class ChangePass(BaseModel):
-    old:str
-    new:str
+    old:str=Field(...,min_length=8)
+    new:str=Field(...,min_length=8)
 class PostCreate(BaseModel):
     title:str
     description:str

@@ -1,7 +1,3 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
 import { Link, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import Login from "./components/Auth/Login"
@@ -16,7 +12,8 @@ import EditProfile from './components/Profile/EditProfile'
 import Profile from './components/Profile/Profile'
 import Dashboard from './Pages/Dashboard'
 import Home from './Pages/Home'
-import AuthProvider from './context/Authcontext'
+import AuthProvider, { useAuth } from './context/Authcontext'
+import ProtectedRoute from './components/ProtectedRoute'
 
 const publicroutes=[
     {path:"/",element:<Home></Home>},{path:"/login",element:<Login></Login>},
@@ -33,37 +30,55 @@ const privateroutes=[
 const adminroute=[
     {path:"/admin/dashboard",element:<Dashboard></Dashboard>}
 ]
-function App() {
+function AppContent() {
+    const{user}=useAuth()
   return(
-    <AuthProvider>
-        <Router>
-            <div>
-                <nav className='navbar'>
-                    <div className='navpost'>
+    <>
+                <nav className="navbar">
+                    <div className="navpost">
                         <Link to="/">PostManager</Link>
                     </div>
-                    <div className='navpostlink'>
+
+                    <div className="navpostlink">
                         <Link to="/posts">Posts</Link>
-                        <Link to="/posts/new">Create Post</Link>
-                        <Link to="/profile">Profile</Link>
-                        <Link to="/logout">Logout</Link>
+                        {user ? (
+                            <>
+                            <Link to="/posts/new">Create Post</Link>
+                            <Link to="/profile">Profile</Link>
+                            {user?.role === "admin" && (
+                                <Link to="/admin/dashboard">Admin Dashboard</Link>
+                                )}
+                                <Link to="/logout">Logout</Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link to="/login">Login</Link>
+                                <Link to="/register">Register</Link>
+                            </>
+                            )}
                     </div>
                 </nav>
-            </div>
             <Routes>
                 {publicroutes.map(({path,element})=>(
                     <Route key={path} path={path} element={element}></Route>
                 ))}
                 {privateroutes.map(({path,element})=>(
-                    <Route key={path} path={path} element={element}></Route>
+                    <Route key={path} path={path} element={<ProtectedRoute>{element}</ProtectedRoute>}/>
                 ))}
                 {adminroute.map(({path,element})=>(
-                    <Route key={path} path={path} element={element}></Route>
+                    <Route key={path} path={path} element={<ProtectedRoute adminOnly>{element}</ProtectedRoute>}></Route>
                 ))}
             </Routes>
-        </Router>
-    </AuthProvider>
+            </>
   )
 }
 
-export default App
+export default function App() {
+    return (
+        <AuthProvider>
+            <Router>
+                <AppContent />
+            </Router>
+        </AuthProvider>
+    );
+}

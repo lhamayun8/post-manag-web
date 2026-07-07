@@ -1,18 +1,11 @@
-from fastapi import APIRouter,HTTPException,Header
+from fastapi import APIRouter,HTTPException,Header,Depends
 from models import Users,Posts
 from database import SessionLocal
 from schema import UserCreate,User,UserLogin,UserEdit,ChangePass
-from authentication import hashpass,verifypass,createtoken
+from authentication import hashpass,verifypass,createtoken,getcurrentuser
 from authentication import verifytoken
 from typing import Optional
 router=APIRouter(prefix="/users",tags=["users"])
-
-def getuser(token:str):
-    payload=verifytoken(token)
-    if payload:
-        return payload
-    else:
-        return None
 
 @router.post("/register",response_model=User)
 def registeruser(user:UserCreate):
@@ -40,44 +33,31 @@ def login(user:UserLogin):
         db.close()
         raise HTTPException(status_code=401,detail="Invalid email or password.")
 
-@router.get("/me")
-def me(authorization:Optional[str]=Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=401,detail="invalid token")
-    token=authorization.split(" ")[1]
-    with SessionLocal() as db:
-        users=verifytoken(token)
-        user=db.query(Users).filter(Users.id==users["id"]).first()
-        if not user:
-            raise HTTPException(status_code=404,detail="user not found")
-        return user
+@router.get("/me",response_model=User)
+def me(currentuser=Depends(getcurrentuser)):
+    return currentuser
     
 @router.post("/logout")
 def logout():
     return{"message":"User is logged out"}
 
 @router.put("/edit")
-def editprofile(data:UserEdit,authorization:str=Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=401,detail="can not authenticate")
-    users=getuser(authorization.split(" ")[1])
+def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser)):
     with SessionLocal() as db:
-        user=db.query(Users).filter(Users.id==users["id"]).first()
+        user=db.query(Users).filter(Users.id==currentuser.id).first()
         if user:
             user.name=data.name
             user.email=data.email
             db.commit()
+            db.refresh(user)
             return {"message":"Profile is updated"}
         else:
             raise HTTPException(status_code=404,detail="user not found")
 
 @router.put("/changepass")
-def editpassword(data:ChangePass,authorization:str=Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=401,detail="can not authenticate")
-    users=getuser(authorization.split(" ")[1])
+def editpassword(data:ChangePass,currentuser=Depends(getcurrentuser)):
     with SessionLocal() as db:
-        user=db.query(Users).filter(Users.id==users["id"]).first()
+        user=db.query(Users).filter(Users.id==currentuser.id).first()
         if user:
             if verifypass(data.old,user.password):
                 user.password=hashpass(data.new)

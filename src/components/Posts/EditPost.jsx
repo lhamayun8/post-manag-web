@@ -14,7 +14,7 @@ export default function EditPost() {
             return;
         }
         try{
-            await api.post(`/posts/${id}`,data)
+            await api.put(`/posts/${id}`,data)
             navigate(`/posts/${id}`)
         }catch(err){
           setError("can not update post.try again later")
@@ -36,7 +36,7 @@ export default function EditPost() {
         }
     }
     const handleChange=(e)=>{
-      if(e.target.name=="image"){
+      if(e.target.name==="image"){
             setData({...data,image:e.target.files[0]})
         }else{
             setData({...data,[e.target.name]:e.target.value})
@@ -76,7 +76,7 @@ export default function EditPost() {
                 <img src={data.image} alt="post"></img>
                 </div>
             )}
-            <input type="file" name="image" acceot="image/*"  onChange={handleimagechange}></input>
+            <input type="file" name="image" accept="image/*"  onChange={handleimagechange}></input>
           </div>
             <button type="submit">Update</button>
         </form>

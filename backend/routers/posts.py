@@ -1,55 +1,45 @@
-from fastapi import APIRouter,HTTPException,Header,Depends,File,UploadFile,Form
+from fastapi import APIRouter,HTTPException,Header,Depends,Query
 from models import Posts,Users
 from schema import PostCreate,Post
 from database import SessionLocal
-from authentication import verifytoken
+from authentication import verifytoken,getcurrentuser
 from typing import List,Optional
 from sqlalchemy.orm import Session
 router=APIRouter(prefix="/posts",tags=["posts"])
 
-def getuser(token:str):
-    payload=verifytoken(token)
-    if not payload:
-        return None
+def get_db():
     db=SessionLocal()
     try:
-        return db.query(Users).filter(Users.id==payload["id"]).first()
+        yield db
     finally:
         db.close()
-    
+
+def strip_data_uri(image:str):
+    if image and image.startswith("data:image"):
+        return image.split(",")[1] if "," in image else image
+    return image
+
 @router.post("/",response_model=Post)
-def makepost(post:PostCreate,authorization:Optional[str]=Header(None)):
-    token=authorization.split(" ")[1]
-    user=getuser(token)
-    if not user:
-        raise HTTPException(status_code=401,detail="Invalid token")
-    if post.image and post.image.startswith('data:image'):
-        post.image=post.image.split(',')[1] if ',' in post.image else post.image
-    else:
-        post.image=post.image
-    db=SessionLocal()
-    try:  
-            newpost=Posts(title=post.title,description=post.description,
-                     category=post.category,status=post.status,
-                     image=post.image,
-                     owner_id=user.id)
-            db.add(newpost)
-            db.commit()
-            db.refresh(newpost)
-            print(f"Post created {newpost.id}")
-            return newpost
-    finally:
-            db.close()
+def makepost(post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    newpost=Posts(title=post.title,description=post.description,
+    category=post.category,status=post.status,
+    image=strip_data_uri(post.image),
+    owner_id=currentuser.id)
+    db.add(newpost)
+    db.commit()
+    db.refresh(newpost)
+    return newpost
 
     
 @router.get("/",response_model=list[Post])
-def listposts():
-    with SessionLocal() as db:
-        return db.query(Posts).all()
+def listposts(search:Optional[str]=Query(None),db:Session =Depends(get_db),skip:int=Query(0,ge=0),limit:int=Query(10,ge=1)):
+    query=db.query(Posts)
+    if search:
+        query=query.filter(Posts.title.ilike(f"%{search}%"))
+    return query.offset(skip).limit(limit).all()
 
 @router.get("/{post_id}",response_model=Post)
-def getposts(post_id:int):
-    db=SessionLocal()
+def getposts(post_id:int,db: Session = Depends(get_db)):
     post=db.query(Posts).filter(Posts.id==post_id).first()
     if not post:
         raise HTTPException(status_code=404,detail="post is not found")
@@ -57,44 +47,29 @@ def getposts(post_id:int):
 
 
 @router.put("/{post_id}",response_model=Post)
-def editpost(post_id:int,post:PostCreate,authorization:Optional[str]=Header(None)):
-    token=authorization.split(" ")[1]
-    user=verifytoken(token)
-    if not user:
-        raise HTTPException("invalid token")
-    
-    with SessionLocal() as db:
+def editpost(post_id:int,post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
         dbpost=db.query(Posts).filter(Posts.id==post_id).first()
         if dbpost:
-            if dbpost.owner_id!=user["id"]:
-                raise HTTPException(status_code=401,detail="not allowed")
+            if dbpost.owner_id!=currentuser.id and currentuser.role!="admin":
+                raise HTTPException(status_code=403,detail="not allowed")
             dbpost.title=post.title
             dbpost.description=post.description
             dbpost.category=post.category
             dbpost.status=post.status
-            if post.image:
-                dbpost.image=post.image
-                if post.image.startswith('data:image'):
-                    post.image=post.image.split(',')[1] if ',' in post.image else post.image
+            dbpost.image=strip_data_uri(post.image)
             db.commit()
             db.refresh(dbpost)
             return dbpost
         else:
-            raise HTTPException("NO POST FOUND")
+            raise HTTPException(status_code=404,detail="NO POST FOUND")
     
 @router.delete("/{post_id}")
-def deletepost(post_id:int,authorization:Optional[str]=Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=401,detail="invalid token")
-    token=authorization.split(" ")[1]
-    user=getuser(token)
-    with SessionLocal() as db:
-        user=getuser(token)
+def deletepost(post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
         dbpost=db.query(Posts).filter(Posts.id==post_id).first()
         if not dbpost:
             raise HTTPException(status_code=404,detail="POST NOT FOUND")
-        if dbpost.owner_id!=user.id and user.role!="admin":
-            raise HTTPException(status_code=401,detail="NOT ALLOWED TO DELETE POST")
+        if dbpost.owner_id!=currentuser.id and currentuser.role!="admin":
+            raise HTTPException(status_code=403,detail="NOT ALLOWED TO DELETE POST")
         db.delete(dbpost)
         db.commit()
         return{"message":"post is deleted"}

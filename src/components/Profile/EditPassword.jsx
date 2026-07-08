@@ -10,6 +10,7 @@ export default function EditPassword() {
   });
   const [err, setError] = useState("");
   const navigate = useNavigate();
+  const[message,setMessage]=useState("")
   const handleChange = (e) => {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
   };
@@ -29,9 +30,12 @@ export default function EditPassword() {
         },
       );
       setPasswords({ currentpass: "", newpass: "", confirmpass: "" });
-      navigate("/profile");
+      setMessage("Password updated successfully!!")
+      setTimeout(()=>{
+        navigate("/profile");
+      },500)
     } catch (err) {
-      setError("failed to update password");
+      setError(err.response?.data?.detail ||"failed to update password");
     }
   };
   return (
@@ -67,6 +71,7 @@ export default function EditPassword() {
         </div>
         <button type="submit">Update Password</button>
       </form>
+      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
       {err && <p style={{ color: "orange" }}>{err}</p>}
     </div>
   );

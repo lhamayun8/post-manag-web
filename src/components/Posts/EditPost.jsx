@@ -26,7 +26,7 @@ export default function EditPost() {
       setMessage("Post is updated successfully!!")
       setTimeout(()=>{
          navigate(`/posts/${id}`);
-      },2500)
+      },1000)
     } catch (err) {
       setError("can not update post.try again later");
       console.error(err);
@@ -49,7 +49,7 @@ export default function EditPost() {
   };
   const handleChange = (e) => {
     if(e.target.name==="status"){
-      setMessage("Post status is updated!!")
+      setMessage("Post is updated successsfully!!")
     }
     if (e.target.name === "image") {
       setData({ ...data, image: e.target.files[0] });

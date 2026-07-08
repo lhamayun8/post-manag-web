@@ -31,8 +31,10 @@ export default function PostInfo() {
 
   const deletePost = async () => {
     await api.delete(`/posts/${id}`);
-    setMessage("post is deleted")
-    navigate("/posts");
+    setMessage("Post is deleted successfully!!")
+    setTimeout(()=>{
+        navigate("/posts");
+      },800)
   };
   if (error) return <div>{error}</div>;
   if (!post) return <div>Loading.</div>;
@@ -70,6 +72,8 @@ export default function PostInfo() {
           Back
         </Link>
       </div>
+      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
+      {error && <p style={{color:"red",fontWeight:"bold"}}>{error}</p>}
     </div>
   );
 }

@@ -14,11 +14,13 @@ import Dashboard from "./Pages/Dashboard";
 import Home from "./Pages/Home";
 import AuthProvider, { useAuth } from "./context/Authcontext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Verify from "./components/Auth/Verify";
 
 const publicroutes = [
   { path: "/", element: <Home></Home> },
   { path: "/login", element: <Login></Login> },
   { path: "/register", element: <Register></Register> },
+  {path:"/verify",element:<Verify></Verify>},
   { path: "/posts", element: <PostList></PostList> },
   { path: "/posts/:id", element: <PostInfo></PostInfo> },
 ];

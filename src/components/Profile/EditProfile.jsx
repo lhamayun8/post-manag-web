@@ -6,13 +6,14 @@ export default function EditProfile() {
   const [data, setData] = useState({ name: "", email: "" });
   const navigate = useNavigate();
   const [err, setError] = useState("");
+  const[message,setMessage]=useState("")
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const set = await api.get("/users/me");
         setData({ name: set.data.name, email: set.data.email });
       } catch (error) {
-        setError("failed to load your profile");
+        setError(err.response?.data?.detail ||"Failed to load your profile");
       }
     };
     fetchProfile();
@@ -27,9 +28,12 @@ export default function EditProfile() {
       await api.put("/users/edit", set, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      navigate("/profile");
+      setMessage("Profile successfully updated!!")
+      setTimeout(()=>{
+        navigate("/profile");
+      },500)
     } catch (error) {
-      setError("can not update profile.");
+      setError(err.response?.data?.detail ||"Can not update profile.");
     }
   };
 
@@ -54,6 +58,7 @@ export default function EditProfile() {
         </div>
         <button type="submit">Save</button>
       </form>
+      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
       {err && <p style={{ color: "orange" }}>{err}</p>}
     </div>
   );

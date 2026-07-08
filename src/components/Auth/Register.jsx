@@ -10,7 +10,7 @@ export default function Register() {
         e.preventDefault();
         try{
             await api.post("/users/register",data)
-            navigate("/login")
+            navigate("/verify",{state:{email:data.email}})
         }catch(err){
             setError(err.response?.data?.detail || "Registration failed.");
         }

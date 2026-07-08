@@ -13,6 +13,10 @@ class UserEdit(BaseModel):
     name: str
     email: EmailStr
 
+class VerifyCode(BaseModel):
+    email:str
+    code:str
+    
 class User(BaseModel):
     id:int
     name:str

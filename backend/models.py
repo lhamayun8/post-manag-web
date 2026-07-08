@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column,Integer,String,ForeignKey,Text
+from sqlalchemy import Column,Integer,String,ForeignKey,Text,Boolean
 from sqlalchemy.orm import relationship
 
 class Users(Base):
@@ -9,6 +9,8 @@ class Users(Base):
     email=Column(String,unique=True,index=True)
     password=Column(String)
     posts=relationship("Posts",back_populates="owner")
+    is_verified=Column(Boolean,default=False)
+    verfcode=Column(String,nullable=True)
     role=Column(String,default="user")
 
 class Posts(Base):

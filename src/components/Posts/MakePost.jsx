@@ -41,7 +41,7 @@ export default function MakePost() {
       setMessage("Post created successfully!!")
       setTimeout(()=>{
         navigate("/posts");
-      },1500)
+      },800)
     } catch (err) {
       setError("failed to create new post.try again");
       console.error(err);

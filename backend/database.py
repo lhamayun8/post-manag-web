@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker,declarative_base
 
-engine=create_engine("sqlite:///./postmanag.sqlite",connect_args={"check_same_thread":False})
+DATABASE_URL = "postgresql://postgres:catmatlaiba1@localhost:5432/postmanager"
+engine=create_engine(DATABASE_URL)
 SessionLocal=sessionmaker(bind=engine)
 Base=declarative_base()

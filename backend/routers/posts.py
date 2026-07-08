@@ -14,6 +14,20 @@ def get_db():
     finally:
         db.close()
 
+def getuserwtoken(authorization:Optional[str]=Header(None),db:Session=Depends(get_db)):
+    if not authorization:
+        return None
+    try:
+        token=authorization.split(" ")[1]
+        payload=verifytoken(token)
+        if not payload:
+            return None
+        user=db.query(Users).filter(Users.id==payload["id"]).first()
+        return user
+    except:
+        return None
+
+    
 def strip_data_uri(image:str):
     if image and image.startswith("data:image"):
         return image.split(",")[1] if "," in image else image
@@ -32,17 +46,26 @@ def makepost(post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = D
 
     
 @router.get("/",response_model=list[Post])
-def listposts(search:Optional[str]=Query(None),db:Session =Depends(get_db),skip:int=Query(0,ge=0),limit:int=Query(10,ge=1)):
+def listposts(search:Optional[str]=Query(None),db:Session =Depends(get_db),skip:int=Query(0,ge=0),limit:int=Query(10,ge=1),currentuser=Depends(getuserwtoken)):
     query=db.query(Posts)
+    if not currentuser:
+        query=query.filter(Posts.status=="published")
+    elif currentuser.role!="admin":
+        query=query.filter((Posts.status=="published")|(Posts.owner_id==currentuser.id))
     if search:
         query=query.filter(Posts.title.ilike(f"%{search}%"))
     return query.offset(skip).limit(limit).all()
 
 @router.get("/{post_id}",response_model=Post)
-def getposts(post_id:int,db: Session = Depends(get_db)):
+def getposts(post_id:int,db: Session = Depends(get_db),currentuser=Depends(getuserwtoken)):
     post=db.query(Posts).filter(Posts.id==post_id).first()
     if not post:
         raise HTTPException(status_code=404,detail="post is not found")
+    if post.status=="draft":
+        if not currentuser:
+            raise HTTPException(status_code=403,detail="this post is private")
+        if post.owner_id!=currentuser.id and currentuser.role!="admin":
+            raise HTTPException(status_code=403,detail="this post is private")
     return post
 
 

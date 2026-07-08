@@ -12,7 +12,7 @@ export default function Register() {
             await api.post("/users/register",data)
             navigate("/login")
         }catch(err){
-            setError("registration error")
+            setError(err.response?.data?.detail || "Registration failed.");
         }
     }
     const handleChange=((e)=>{
@@ -25,10 +25,14 @@ export default function Register() {
         <form onSubmit={handleSubmit}>
             <div className="form-group">
                 <input name="name" placeholder='name' onChange={handleChange}></input>
+            </div>
+            <div className="form-group">
                 <input name="email"type="email" placeholder='email' onChange={handleChange}></input>
+            </div>
+            <div className="form-group">
                 <input name="password" type="password" placeholder='password' onChange={handleChange}></input>
+            </div>
                 <button type="submit">Register User</button>
-            </div>        
         </form>
         {error && <p style={{color:"orange"}}>{error}</p>}
         <p>Already have an account?<Link to="/login">Login</Link></p>

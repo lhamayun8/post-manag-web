@@ -15,12 +15,18 @@ import Home from "./Pages/Home";
 import AuthProvider, { useAuth } from "./context/Authcontext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Verify from "./components/Auth/Verify";
+import ForgotPassword from "./components/Auth/ForgotPassword";
+import ResetPassword from "./components/Auth/ResetPassword";
+import VerifyNewPass from "./components/Auth/VerifyNewPass";
 
 const publicroutes = [
   { path: "/", element: <Home></Home> },
   { path: "/login", element: <Login></Login> },
   { path: "/register", element: <Register></Register> },
   {path:"/verify",element:<Verify></Verify>},
+  {path:"/forgot-password",element:<ForgotPassword></ForgotPassword>},
+  {path:"/verify-new-pass",element:<VerifyNewPass></VerifyNewPass>},
+  {path:"/reset-password",element:<ResetPassword></ResetPassword>},
   { path: "/posts", element: <PostList></PostList> },
   { path: "/posts/:id", element: <PostInfo></PostInfo> },
 ];

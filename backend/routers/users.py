@@ -1,7 +1,7 @@
-from fastapi import APIRouter,HTTPException,Header,Depends
+from fastapi import APIRouter,HTTPException,Header,Depends,Query
 from models import Users,Posts
 from database import SessionLocal
-from schema import UserCreate,User,UserLogin,UserEdit,ChangePass,VerifyCode
+from schema import UserCreate,User,UserLogin,UserEdit,ChangePass,VerifyCode,ForgetPassword,ResetPassword
 from authentication import hashpass,verifypass,createtoken,getcurrentuser
 from authentication import verifytoken
 from typing import Optional
@@ -23,6 +23,49 @@ async def registeruser(user:UserCreate):
     await sendemail(newuser.email,code)
     db.close()
     return newuser
+
+@router.post("/reset-password-code")
+def reset_password_code(data:VerifyCode):
+    db=SessionLocal()
+    user=db.query(Users).filter(Users.email==data.email).first()
+    if not user:
+        db.close()
+        raise HTTPException(status_code=404,detail="User does not exist")
+    if user.resetcode!=data.code:
+        db.close()
+        raise HTTPException(status_code=400,detail="invalid reset code.Try again!!")
+    db.close() 
+    return{"message":"code verified"}
+
+@router.post("/forgot-password")
+async def forgotpassword(email:str=Query(...)):
+    db=SessionLocal()
+    user=db.query(Users).filter(Users.email==email).first()
+    if not user:
+        db.close()
+        raise HTTPException(status_code=404,detail="No such email exists.Please register this email.")
+    code=str(random.randint(100000,999999))
+    user.resetcode=code
+    db.commit()
+    await sendemail(user.email,code)
+    db.close()
+    return{"message":"Password resend code is sent"}
+
+@router.post("/reset-password")
+async def resetpassword(data:ResetPassword):
+    db=SessionLocal()
+    user=db.query(Users).filter(Users.email==data.email).first()
+    if not user:
+        db.close()
+        raise HTTPException(status_code=404,detail="No such email")
+    if user.resetcode!=data.code:
+        db.close()
+        raise HTTPException(status_code=400,detail="Invalid verification code")
+    user.password=hashpass(data.new_password)
+    user.resetcode=None
+    db.commit()
+    db.close()
+    return{"message":"Password is reset successfully"}
 
 @router.post("/verify")
 def verifyemail(data:VerifyCode):

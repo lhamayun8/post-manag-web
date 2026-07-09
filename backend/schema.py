@@ -13,8 +13,16 @@ class UserEdit(BaseModel):
     name: str
     email: EmailStr
 
+class ForgetPassword(BaseModel):
+    email:EmailStr
+
+class ResetPassword(BaseModel):
+    email:EmailStr
+    code:str
+    new_password:str
+    
 class VerifyCode(BaseModel):
-    email:str
+    email:EmailStr
     code:str
     
 class User(BaseModel):

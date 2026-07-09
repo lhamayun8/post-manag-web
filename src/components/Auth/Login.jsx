@@ -54,6 +54,7 @@ export default function Login() {
       <p>
         Dont have an account yet?<Link to="/register">Register here</Link>
       </p>
+      <p><Link to="/forgot-password">Forgot Password?</Link></p>
     </div>
   );
 }

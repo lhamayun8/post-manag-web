@@ -12,7 +12,8 @@ class Users(Base):
     is_verified=Column(Boolean,default=False)
     verfcode=Column(String,nullable=True)
     role=Column(String,default="user")
-
+    resetcode=Column(String,nullable=True)
+    
 class Posts(Base):
     __tablename__="posts"
     id=Column(Integer,primary_key=True,index=True)

@@ -13,7 +13,7 @@ export default function Verify() {
         e.preventDefault()
         try{
             const set=await api.post("/users/verify",{email,code})
-            setMessage(set.data.message)
+            setMessage("Email verified successsfully!!")
             setTimeout(()=>{
                 navigate("/login")
             },1000)

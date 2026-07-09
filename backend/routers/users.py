@@ -7,6 +7,7 @@ from authentication import verifytoken
 from typing import Optional
 import random
 from emailservice import sendemail
+from datetime import datetime,timedelta
 router=APIRouter(prefix="/users",tags=["users"])
 
 @router.post("/register",response_model=User)
@@ -46,6 +47,7 @@ async def forgotpassword(email:str=Query(...)):
         raise HTTPException(status_code=404,detail="No such email exists.Please register this email.")
     code=str(random.randint(100000,999999))
     user.resetcode=code
+    user.resetcode_expiry=datetime.utcnow()+timedelta(minutes=15)
     db.commit()
     await sendemail(user.email,code)
     db.close()
@@ -61,6 +63,9 @@ async def resetpassword(data:ResetPassword):
     if user.resetcode!=data.code:
         db.close()
         raise HTTPException(status_code=400,detail="Invalid verification code")
+    if user.resetcode_expiry is None or datetime.utcnow()>user.resetcode_expiry:
+        db.close()
+        raise HTTPException(status_code=400,detail='Reset code is expired')
     user.password=hashpass(data.new_password)
     user.resetcode=None
     db.commit()
@@ -86,6 +91,25 @@ def verifyemail(data:VerifyCode):
     db.refresh(user)
     db.close()
     return{ "message":"email verified"}
+
+@router.post("/resend-verification")
+async def resend_verification(email:str=Query(...)):
+    db=SessionLocal()
+    user=db.query(Users).filter(Users.email==email).first()
+    if not user:
+        db.close()
+        raise HTTPException(status_code=404,detail="No such email exists.Please register this email.")
+    if user.is_verified:
+        db.close()
+        raise HTTPException(status_code=400,detail="Email is already verified")
+    code=str(random.randint(100000,999999))
+    user.verfcode=code
+    user.verfcode_expiry=datetime.utcnow()+timedelta(minutes=15)
+    db.commit()
+    await sendemail(user.email,code)
+    db.close()
+    return{"message":"New email verification code is sent"}
+
 @router.post("/login")
 def login(user:UserLogin):
     db=SessionLocal()

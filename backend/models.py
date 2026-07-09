@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column,Integer,String,ForeignKey,Text,Boolean
+from sqlalchemy import Column,Integer,String,ForeignKey,Text,Boolean,DateTime
 from sqlalchemy.orm import relationship
 
 class Users(Base):
@@ -11,9 +11,12 @@ class Users(Base):
     posts=relationship("Posts",back_populates="owner")
     is_verified=Column(Boolean,default=False)
     verfcode=Column(String,nullable=True)
+    verfcode_expiry=Column(DateTime,nullable=True)
     role=Column(String,default="user")
     resetcode=Column(String,nullable=True)
-    
+    resetcode_expiry=Column(DateTime,nullable=True)
+
+
 class Posts(Base):
     __tablename__="posts"
     id=Column(Integer,primary_key=True,index=True)

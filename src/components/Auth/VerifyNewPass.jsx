@@ -24,6 +24,8 @@ export default function VerifyNewPass() {
         }
     }
     const handleResend=async(e)=>{
+        setError("")
+        setMessage("")
         try{
             await api.post("/users/forgot-password",null,{params:{email}})
             setMessage("New verification codeis sent to your email")

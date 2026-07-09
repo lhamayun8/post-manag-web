@@ -16,12 +16,15 @@ async def registeruser(user:UserCreate):
     if db.query(Users).filter(Users.email==user.email).first():
         db.close()
         raise HTTPException(status_code=400,detail="Email already exists")
+    if db.query(Users).filter(Users.name==user.name).first():
+        db.close()
+        raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
     code=str(random.randint(100000,999999))
     newuser=Users(name=user.name,email=user.email,password=hashpass(user.password),role="user",verfcode=code,is_verified=False)
     db.add(newuser)
     db.commit()
     db.refresh(newuser)
-    await sendemail(newuser.email,code)
+    await sendemail(newuser.email,code,"verify")
     db.close()
     return newuser
 
@@ -49,7 +52,7 @@ async def forgotpassword(email:str=Query(...)):
     user.resetcode=code
     user.resetcode_expiry=datetime.utcnow()+timedelta(minutes=15)
     db.commit()
-    await sendemail(user.email,code)
+    await sendemail(user.email,code,"reset")
     db.close()
     return{"message":"Password resend code is sent"}
 
@@ -106,7 +109,7 @@ async def resend_verification(email:str=Query(...)):
     user.verfcode=code
     user.verfcode_expiry=datetime.utcnow()+timedelta(minutes=15)
     db.commit()
-    await sendemail(user.email,code)
+    await sendemail(user.email,code,"verify")
     db.close()
     return{"message":"New email verification code is sent"}
 
@@ -138,14 +141,15 @@ def logout():
 def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser)):
     with SessionLocal() as db:
         user=db.query(Users).filter(Users.id==currentuser.id).first()
-        if user:
-            user.name=data.name
-            user.email=data.email
-            db.commit()
-            db.refresh(user)
-            return {"message":"Profile is updated"}
-        else:
-            raise HTTPException(status_code=404,detail="User not found")
+        if not user:
+            raise HTTPException(status_code=404,detail="user not found")
+        if db.query(Users).filter(Users.name==user.name,Users.id!=currentuser.id).first():
+            db.close()
+            raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
+        user.name=data.name
+        db.commit()
+        db.refresh(user)
+        return {"message":"Profile is updated"}
 
 @router.put("/changepass")
 def editpassword(data:ChangePass,currentuser=Depends(getcurrentuser)):

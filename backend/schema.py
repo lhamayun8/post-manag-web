@@ -1,5 +1,6 @@
 from pydantic import BaseModel,EmailStr,Field
 from typing import Optional
+from datetime import datetime
 class UserCreate(BaseModel):
     name:str
     email:EmailStr
@@ -11,7 +12,6 @@ class UserLogin(BaseModel):
 
 class UserEdit(BaseModel):
     name: str
-    email: EmailStr
 
 class ForgetPassword(BaseModel):
     email:EmailStr
@@ -20,7 +20,7 @@ class ResetPassword(BaseModel):
     email:EmailStr
     code:str
     new_password:str
-    
+
 class VerifyCode(BaseModel):
     email:EmailStr
     code:str
@@ -51,6 +51,8 @@ class Post(BaseModel):
     status:str
     owner_id:int
     image:Optional[str]=None
+    created_at:datetime
+    username:str
     class Config:
         from_attributes=True
         

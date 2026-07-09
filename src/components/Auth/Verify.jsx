@@ -43,7 +43,7 @@ export default function Verify() {
         <p style={{color:"#d97706",fontWeight:"bold",marginTop:"20px"}}>This verification code is valid for 15 minutes</p>
         <button type="submit">Verify</button>
         </form>
-        <button onClick={handleResend}>Resend code</button>
+        <button onClick={handleResend} style={{marginTop:"15px"}}>Resend code</button>
       {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
       {error && <p style={{ color: "orange" }}>{error}</p>}
     </div>

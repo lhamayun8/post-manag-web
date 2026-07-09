@@ -20,7 +20,11 @@ export default function PostList() {
       setError(err.response?.data?.detail || "No posts avaiable.");
     }
   };
-
+  const formatDate=(date)=>{
+    return new Date(date+"Z").toLocaleString("en-PK",{
+      timeZone:"Asia/Karachi"
+    })
+  }
   return (
     <div className="posts-container">
       <h2>Posts</h2>
@@ -40,8 +44,19 @@ export default function PostList() {
         {posts.map((post) => (
           <li key={post.id} className="post-item">
             <Link to={`/posts/${post.id}`}>{post.title}</Link>
-          </li>
-        ))}
+            {post.status==="draft"?(
+              <>
+                <p><b>Draft</b></p>
+                <p>Created at {formatDate(post.created_at)}</p>
+              </>
+            ):(
+              <>
+                <p>Posted by <b>{post.username}</b></p>
+                <p>{formatDate(post.created_at)}</p>
+              </>
+            )}
+            </li>
+        ))} 
       </ul>
       {user && (
         <Link to="/posts/new" className="btn btn-primary">

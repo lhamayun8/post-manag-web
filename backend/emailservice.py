@@ -9,7 +9,19 @@ con=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
                      MAIL_SERVER=os.getenv("MAIL_SERVER"),
                      MAIL_STARTTLS=True,MAIL_SSL_TLS=False,
                      USE_CREDENTIALS=True)
-async def sendemail(email:str,code):
+async def sendemail(email:str,code,email_type:str):
+    if email_type=="verify":
+        subject="Verify Your Email - PostManager"
+        heading="Email Verification"
+        greeting="Thank you for registering with PostManager"
+        instruction="Use the verification code below to verify your email address"
+    elif email_type=="reset":
+        subject="Reset Password - PostManager"
+        heading="Password Reset"
+        greeting="We recieved a request from you to reset your password"
+        instruction="Use the verification code below to reset your password"
+    else:
+        raise ValueError("invalid email type")
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -56,6 +68,13 @@ async def sendemail(email:str,code):
                 border-radius: 10px;
                 font-weight: bold;
             }}
+            .note {{
+                background:#fff7ed;
+                border-left:4px solid #f59e0b;
+                padding:15px;
+                border-radius:6px;
+                margin-top:20px;
+            }}
             .footer {{
                 text-align: center;
                 color: #888;
@@ -69,26 +88,25 @@ async def sendemail(email:str,code):
     <div class="container">
         <div class="header">
             <h1>PostManager</h1>
-            <p>Email Verification</p>
+            <h3>{heading}</h3>
         </div>
         <div class="content">
             <h2>Hello</h2>
             <p>
-                Thank you for registering with
-                <strong>PostManager</strong>.
+                {greeting}
             </p>
             <p>
-                To verify your email address, please use the verification code below:
+                {instruction}
             </p>
             <div class="code">
                 {code}
             </div>
-            <p>
-                This code will expire soon.
-            </p>
-            <p>
-                If you did not create this account, you can safely ignore this email.
-            </p>
+             <div class="note">
+                    <strong>Important</strong><br>
+                    • This code is valid for <strong>15 minutes</strong>.<br>
+                    • Use only the most recently received code.<br>
+                    • If you didn't request this, you can safely ignore this email.
+            </div>
             <p>
                 Thank you,<br>
                 <strong>PostManager Team</strong>

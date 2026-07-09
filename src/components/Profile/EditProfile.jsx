@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
 export default function EditProfile() {
-  const [data, setData] = useState({ name: "", email: "" });
+  const [data, setData] = useState({ name: "",email:""});
   const navigate = useNavigate();
   const [err, setError] = useState("");
   const[message,setMessage]=useState("")
@@ -11,9 +11,9 @@ export default function EditProfile() {
     const fetchProfile = async () => {
       try {
         const set = await api.get("/users/me");
-        setData({ name: set.data.name, email: set.data.email });
+        setData({ name: set.data.name,email:set.data.email});
       } catch (error) {
-        setError(err.response?.data?.detail ||"Failed to load your profile");
+        setError(error.response?.data?.detail ||"Failed to load your profile");
       }
     };
     fetchProfile();
@@ -23,7 +23,7 @@ export default function EditProfile() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const set = { name: data.name, email: data.email };
+    const set = { name: data.name};
     try {
       await api.put("/users/edit", set, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -33,13 +33,14 @@ export default function EditProfile() {
         navigate("/profile");
       },500)
     } catch (error) {
-      setError(err.response?.data?.detail ||"Can not update profile.");
+      setError(error.response?.data?.detail ||"Can not update profile.");
     }
   };
 
   return (
     <div className="auth-container">
       <h2>Edit profile </h2>
+      <p style={{color:"#d97706",fontWeight:"bold"}}>{data.email}</p>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <input
@@ -47,13 +48,6 @@ export default function EditProfile() {
             value={data.name}
             onChange={handleChange}
             placeholder="name"
-          ></input>
-          <input
-            name="email"
-            type="email"
-            value={data.email}
-            placeholder="email"
-            onChange={handleChange}
           ></input>
         </div>
         <button type="submit">Save</button>

@@ -7,6 +7,9 @@ from typing import List,Optional
 from sqlalchemy.orm import Session
 router=APIRouter(prefix="/posts",tags=["posts"])
 
+def post_response(post):
+    return{"id":post.id,"title":post.title,"description":post.description,"category":post.category,"status":post.status,
+           "image":post.image,"created_at":post.created_at,"username":post.owner.name if post.owner else None,"owner_id":post.owner_id}
 def get_db():
     db=SessionLocal()
     try:
@@ -42,19 +45,20 @@ def makepost(post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = D
     db.add(newpost)
     db.commit()
     db.refresh(newpost)
-    return newpost
+    return post_response(newpost)
 
     
 @router.get("/",response_model=list[Post])
 def listposts(search:Optional[str]=Query(None),db:Session =Depends(get_db),skip:int=Query(0,ge=0),limit:int=Query(10,ge=1),currentuser=Depends(getuserwtoken)):
-    query=db.query(Posts)
+    query=db.query(Posts).order_by(Posts.created_at.desc())
     if not currentuser:
         query=query.filter(Posts.status=="published")
     elif currentuser.role!="admin":
         query=query.filter((Posts.status=="published")|(Posts.owner_id==currentuser.id))
     if search:
         query=query.filter(Posts.title.ilike(f"%{search}%"))
-    return query.offset(skip).limit(limit).all()
+    posts=query.offset(skip).limit(limit).all()
+    return [post_response(post) for post in posts]
 
 @router.get("/{post_id}",response_model=Post)
 def getposts(post_id:int,db: Session = Depends(get_db),currentuser=Depends(getuserwtoken)):
@@ -66,7 +70,7 @@ def getposts(post_id:int,db: Session = Depends(get_db),currentuser=Depends(getus
             raise HTTPException(status_code=403,detail="this post is private")
         if post.owner_id!=currentuser.id and currentuser.role!="admin":
             raise HTTPException(status_code=403,detail="this post is private")
-    return post
+    return post_response(post)
 
 
 @router.put("/{post_id}",response_model=Post)
@@ -82,7 +86,7 @@ def editpost(post_id:int,post:PostCreate,currentuser=Depends(getcurrentuser),db:
             dbpost.image=strip_data_uri(post.image)
             db.commit()
             db.refresh(dbpost)
-            return dbpost
+            return post_response(dbpost)
         else:
             raise HTTPException(status_code=404,detail="NO POST FOUND")
     

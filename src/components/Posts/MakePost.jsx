@@ -1,5 +1,4 @@
 import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 export default function MakePost() {
   const [data, setData] = useState({
@@ -9,7 +8,6 @@ export default function MakePost() {
     status: "draft",
     image: "",
   });
-  const navigate = useNavigate();
   const [error, setError] = useState("");
   const[message,setMessage]=useState("")
   const handleChange = (e) => {
@@ -39,11 +37,8 @@ export default function MakePost() {
     try {
       await api.post("/posts/", data);
       setMessage("Post created successfully!!")
-      setTimeout(()=>{
-        navigate("/posts");
-      },800)
     } catch (err) {
-      setError("failed to create new post.try again");
+      setError(err.response?.data?.detail ||"failed to create new post.try again");
       console.error(err);
     }
   };

@@ -7,17 +7,16 @@ export default function PostList() {
   const [posts, setPost] = useState([]);
   const [search, setSearch] = useState("");
   const [err, setError] = useState("");
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchPost();
   }, [search]);
   const fetchPost = async () => {
     try {
-      const set = await api.get("/posts", { params: { search } });
+      const set = await api.get("/posts", { params: { status:"published",search } });
       setPost(set.data);
     } catch (err) {
-      setError(err.response?.data?.detail || "No posts avaiable.");
+      setError(err.response?.data?.detail || "No published posts avaiable.");
     }
   };
   const formatDate=(date)=>{
@@ -27,7 +26,7 @@ export default function PostList() {
   }
   return (
     <div className="posts-container">
-      <h2>Posts</h2>
+      <h2>Published Posts</h2>
       <div className="search-container">
         <input
           type="text"
@@ -40,29 +39,23 @@ export default function PostList() {
         </button>
       </div>
       {err && <p style={{ color: "orange" }}>{err}</p>}
-      <ul>
-        {posts.map((post) => (
-          <li key={post.id} className="post-item">
-            <Link to={`/posts/${post.id}`}>{post.title}</Link>
-            {post.status==="draft"?(
-              <>
-                <p><b>Draft</b></p>
-                <p>Created at {formatDate(post.created_at)}</p>
-              </>
-            ):(
-              <>
+        {posts.length===0?<p>No Published Posts</p>
+        :
+        posts.map((post) => (
+          <div key={post.id} className="post-card">
+            <h2>Title:  {post.title}</h2>
+            {post.image && (
+          <div className="image-container">
+            {" "}
+            <img src={`data:image/jpeg;base64,${post.image}`} alt="post"></img>
+          </div>
+        )}
                 <p>Posted by <b>{post.username}</b></p>
                 <p>{formatDate(post.created_at)}</p>
-              </>
-            )}
-            </li>
-        ))} 
-      </ul>
-      {user && (
-        <Link to="/posts/new" className="btn btn-primary">
-          Create new post
-        </Link>
-      )}
-    </div>
-  );
+                <p>Category:{post.category}</p>
+            </div>
+            ))
+            }
+      </div>
+  )
 }

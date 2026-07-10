@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 
-export default function EditPost() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+export default function EditPost({id,setTab}) {
   const [err, setError] = useState("");
   const[message,setMessage]=useState("")
   const [data, setData] = useState({
@@ -25,7 +23,7 @@ export default function EditPost() {
       await api.put(`/posts/${id}`, data);
       setMessage("Post is updated successfully!!")
       setTimeout(()=>{
-         navigate(`/posts/${id}`);
+         setTab("myposts")
       },1000)
     } catch (err) {
       setError("can not update post.try again later");
@@ -48,9 +46,6 @@ export default function EditPost() {
     }
   };
   const handleChange = (e) => {
-    if(e.target.name==="status"){
-      setMessage("Post is updated successsfully!!")
-    }
     if (e.target.name === "image") {
       setData({ ...data, image: e.target.files[0] });
     } else {
@@ -113,7 +108,7 @@ export default function EditPost() {
             onChange={handleimagechange}
           ></input>
         </div>
-        <button type="submit">Update</button>
+        <button type="submit" className="btn btn-primary">Update</button>
       </form>
       {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
       {err && <p style={{color:"red",fontWeight:"bold"}}>{err}</p>}

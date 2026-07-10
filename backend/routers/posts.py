@@ -1,5 +1,5 @@
 from fastapi import APIRouter,HTTPException,Header,Depends,Query
-from models import Posts,Users
+from models import Posts,Users,Friendship
 from schema import PostCreate,Post
 from database import SessionLocal
 from authentication import verifytoken,getcurrentuser
@@ -30,11 +30,23 @@ def getuserwtoken(authorization:Optional[str]=Header(None),db:Session=Depends(ge
     except:
         return None
 
-    
+
+@router.get("/me")
+def myposts(currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    posts=db.query(Posts).filter(Posts.owner_id==currentuser.id).order_by(Posts.created_at.desc()).all()
+    return[{"id":p.id,"title":p.title,"category":p.category,"status":p.status,"image":p.image,"created_at":p.created_at}
+           for p in posts]
+
 def strip_data_uri(image:str):
     if image and image.startswith("data:image"):
         return image.split(",")[1] if "," in image else image
     return image
+
+@router.get("/me/drafts")
+def mydrafts(currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    drafts=db.query(Posts).filter(Posts.owner_id==currentuser.id,Posts.status=="draft").all()
+    return[{"id":p.id,"title":p.title,"category":p.category,"created_at":p.created_at,"image":p.image}
+           for p in drafts]
 
 @router.post("/",response_model=Post)
 def makepost(post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
@@ -51,10 +63,9 @@ def makepost(post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = D
 @router.get("/",response_model=list[Post])
 def listposts(search:Optional[str]=Query(None),db:Session =Depends(get_db),skip:int=Query(0,ge=0),limit:int=Query(10,ge=1),currentuser=Depends(getuserwtoken)):
     query=db.query(Posts).order_by(Posts.created_at.desc())
-    if not currentuser:
-        query=query.filter(Posts.status=="published")
-    elif currentuser.role!="admin":
-        query=query.filter((Posts.status=="published")|(Posts.owner_id==currentuser.id))
+    query=db.query(Posts).filter(
+        Posts.status=="published"
+    ).order_by(Posts.created_at.desc())
     if search:
         query=query.filter(Posts.title.ilike(f"%{search}%"))
     posts=query.offset(skip).limit(limit).all()

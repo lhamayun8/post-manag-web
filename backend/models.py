@@ -29,3 +29,21 @@ class Posts(Base):
     owner_id=Column(Integer,ForeignKey("users.id",ondelete="CASCADE"))
     image=Column(Text,nullable=True)
     owner=relationship("Users",back_populates="posts")
+
+class FriendRequests(Base):
+    __tablename__="friend-requests"
+    id=Column(Integer,primary_key=True)
+    sender_id=Column(Integer,ForeignKey("users.id"))
+    receiver_id=Column(Integer,ForeignKey("users.id"))
+    status=Column(String,default="pending")
+    created_at=Column(DateTime,default=datetime.utcnow)
+    sender=relationship("Users",foreign_keys=[sender_id])
+    receiver=relationship("Users",foreign_keys=[receiver_id])
+
+class Friendship(Base):
+    __tablename__="friends"
+    id=Column(Integer,primary_key=True)
+    user_id=Column(Integer,ForeignKey("users.id"))
+    friend_id=Column(Integer,ForeignKey("users.id"))
+    created_at=Column(DateTime,default=datetime.utcnow)
+    friend=relationship("Users",foreign_keys=[friend_id])

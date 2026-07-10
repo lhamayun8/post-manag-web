@@ -18,6 +18,8 @@ import Verify from "./components/Auth/Verify";
 import ForgotPassword from "./components/Auth/ForgotPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 import VerifyNewPass from "./components/Auth/VerifyNewPass";
+import Friends from "./Pages/Friends";
+import Posts from "./Pages/Posts";
 
 const publicroutes = [
   { path: "/", element: <Home></Home> },
@@ -27,7 +29,7 @@ const publicroutes = [
   {path:"/forgot-password",element:<ForgotPassword></ForgotPassword>},
   {path:"/verify-new-pass",element:<VerifyNewPass></VerifyNewPass>},
   {path:"/reset-password",element:<ResetPassword></ResetPassword>},
-  { path: "/posts", element: <PostList></PostList> },
+  { path: "/posts", element: <Posts></Posts>},
   { path: "/posts/:id", element: <PostInfo></PostInfo> },
 ];
 const privateroutes = [
@@ -38,6 +40,7 @@ const privateroutes = [
   { path: "/profile/edit", element: <EditProfile></EditProfile> },
   { path: "/profile/changepass", element: <EditPassword></EditPassword> },
   { path: "/dashboard", element: <Dashboard></Dashboard> },
+  {path:"/friends",element:<Friends></Friends>}
 ];
 const adminroute = [
   { path: "/admin/dashboard", element: <Dashboard></Dashboard> },
@@ -55,7 +58,7 @@ function AppContent() {
           <Link to="/posts">Posts</Link>
           {user ? (
             <>
-              <Link to="/posts/new">Create Post</Link>
+              <Link to="/friends">Friends</Link>
               <Link to="/profile">Profile</Link>
               {user?.role === "admin" && (
                 <Link to="/admin/dashboard">Admin Dashboard</Link>

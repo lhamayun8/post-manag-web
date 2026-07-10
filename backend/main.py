@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from database import Base,engine
-from routers import users,posts,admin
+from routers import users,posts,admin,friends,sockets
 from fastapi.middleware.cors import CORSMiddleware
 app=FastAPI()
 Base.metadata.create_all(bind=engine)
 app.include_router(users.router)
 app.include_router(posts.router)
 app.include_router(admin.router)
-
+app.include_router(friends.router)
+app.include_router(sockets.router)
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173"],allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"],)
 @app.get("/")

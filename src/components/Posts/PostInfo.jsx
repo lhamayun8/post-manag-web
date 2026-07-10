@@ -57,7 +57,7 @@ export default function PostInfo() {
       <div className="post-actions">
         {edit && (
           <>
-            <button onClick={toggle} className="btn btn-info">
+          <button onClick={toggle} className="btn btn-info">
               {post.status === "published" ? "draft" : "publish"}
             </button>
             <Link to={`/posts/edit/${post.id}`} className="btn btn-primary">

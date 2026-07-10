@@ -1,6 +1,7 @@
 from fastapi import APIRouter,HTTPException,Header,Depends,Query
-from models import Users,Posts
+from models import Users,Posts,FriendRequests,Friendship
 from database import SessionLocal
+from sqlalchemy.orm import Session
 from schema import UserCreate,User,UserLogin,UserEdit,ChangePass,VerifyCode,ForgetPassword,ResetPassword
 from authentication import hashpass,verifypass,createtoken,getcurrentuser
 from authentication import verifytoken
@@ -10,9 +11,15 @@ from emailservice import sendemail
 from datetime import datetime,timedelta
 router=APIRouter(prefix="/users",tags=["users"])
 
-@router.post("/register",response_model=User)
-async def registeruser(user:UserCreate):
+def get_db():
     db=SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@router.post("/register",response_model=User)
+async def registeruser(user:UserCreate,db:Session=Depends(get_db)):
     if db.query(Users).filter(Users.email==user.email).first():
         db.close()
         raise HTTPException(status_code=400,detail="Email already exists")
@@ -29,8 +36,7 @@ async def registeruser(user:UserCreate):
     return newuser
 
 @router.post("/reset-password-code")
-def reset_password_code(data:VerifyCode):
-    db=SessionLocal()
+def reset_password_code(data:VerifyCode,db:Session=Depends(get_db)):
     user=db.query(Users).filter(Users.email==data.email).first()
     if not user:
         db.close()
@@ -42,8 +48,7 @@ def reset_password_code(data:VerifyCode):
     return{"message":"code verified"}
 
 @router.post("/forgot-password")
-async def forgotpassword(email:str=Query(...)):
-    db=SessionLocal()
+async def forgotpassword(email:str=Query(...),db:Session=Depends(get_db)):
     user=db.query(Users).filter(Users.email==email).first()
     if not user:
         db.close()
@@ -57,8 +62,7 @@ async def forgotpassword(email:str=Query(...)):
     return{"message":"Password resend code is sent"}
 
 @router.post("/reset-password")
-async def resetpassword(data:ResetPassword):
-    db=SessionLocal()
+async def resetpassword(data:ResetPassword,db:Session=Depends(get_db)):
     user=db.query(Users).filter(Users.email==data.email).first()
     if not user:
         db.close()
@@ -76,8 +80,7 @@ async def resetpassword(data:ResetPassword):
     return{"message":"Password is reset successfully"}
 
 @router.post("/verify")
-def verifyemail(data:VerifyCode):
-    db=SessionLocal()
+def verifyemail(data:VerifyCode,db:Session=Depends(get_db)):
     user=db.query(Users).filter(Users.email==data.email).first()
     if not user:
         db.close()
@@ -96,8 +99,7 @@ def verifyemail(data:VerifyCode):
     return{ "message":"email verified"}
 
 @router.post("/resend-verification")
-async def resend_verification(email:str=Query(...)):
-    db=SessionLocal()
+async def resend_verification(email:str=Query(...),db:Session=Depends(get_db)):
     user=db.query(Users).filter(Users.email==email).first()
     if not user:
         db.close()
@@ -114,8 +116,7 @@ async def resend_verification(email:str=Query(...)):
     return{"message":"New email verification code is sent"}
 
 @router.post("/login")
-def login(user:UserLogin):
-    db=SessionLocal()
+def login(user:UserLogin,db:Session=Depends(get_db)):
     dbuser=db.query(Users).filter_by(email=user.email).first()
     if dbuser and verifypass(user.password,dbuser.password):
         if not dbuser.is_verified:
@@ -138,8 +139,7 @@ def logout():
     return{"message":"User is logged out"}
 
 @router.put("/edit")
-def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser)):
-    with SessionLocal() as db:
+def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
         user=db.query(Users).filter(Users.id==currentuser.id).first()
         if not user:
             raise HTTPException(status_code=404,detail="user not found")
@@ -152,8 +152,7 @@ def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser)):
         return {"message":"Profile is updated"}
 
 @router.put("/changepass")
-def editpassword(data:ChangePass,currentuser=Depends(getcurrentuser)):
-    with SessionLocal() as db:
+def editpassword(data:ChangePass,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
         user=db.query(Users).filter(Users.id==currentuser.id).first()
         if user:
             if verifypass(data.old,user.password):

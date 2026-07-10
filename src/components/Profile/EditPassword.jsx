@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
-export default function EditPassword() {
+export default function EditPassword({setTab}) {
   const [passwords, setPasswords] = useState({
     currentpass: "",
     newpass: "",
     confirmpass: "",
   });
   const [err, setError] = useState("");
-  const navigate = useNavigate();
   const[message,setMessage]=useState("")
   const handleChange = (e) => {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
@@ -17,6 +16,7 @@ export default function EditPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setMessage("")
     if (passwords.newpass !== passwords.confirmpass) {
       setError("Both passwords are not the same");
       return;
@@ -32,7 +32,8 @@ export default function EditPassword() {
       setPasswords({ currentpass: "", newpass: "", confirmpass: "" });
       setMessage("Password updated successfully!!")
       setTimeout(()=>{
-        navigate("/profile");
+        setMessage("")
+        setTab("profile")
       },500)
     } catch (err) {
       setError(err.response?.data?.detail ||"failed to update password");
@@ -43,7 +44,7 @@ export default function EditPassword() {
       <h2>Change Password</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Current password</label>
+          <label htmlFor="currentpass">Current password</label>
           <input
             name="currentpass"
             type="password"
@@ -52,7 +53,7 @@ export default function EditPassword() {
           ></input>
         </div>
         <div className="form-group">
-          <label>New password</label>
+          <label htmlFor="newpass">New password</label>
           <input
             name="newpass"
             type="password"
@@ -61,7 +62,7 @@ export default function EditPassword() {
           ></input>
         </div>
         <div className="form-group">
-          <label>Confirm password</label>
+          <label htmlFor="confirmpass">Confirm password</label>
           <input
             name="confirmpass"
             type="password"

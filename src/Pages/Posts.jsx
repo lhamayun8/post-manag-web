@@ -25,7 +25,7 @@ export default function Posts() {
             {tab==="published" && (<PostList></PostList>)}
             {user && tab==="myposts" && (<MyPosts setTab={setTab} setEditId={setEditId}></MyPosts>)}
             {user && tab==="drafts" &&(<MyDrafts setTab={setTab} setEditId={setEditId}></MyDrafts>) }
-            {user && tab==="create" &&(<MakePost></MakePost>)}
+            {user && tab==="create" &&(<MakePost setTab={setTab}></MakePost>)}
             {user && tab==="edit" &&(<EditPost id={editId} setTab={setTab}></EditPost>)}
         </div>
       

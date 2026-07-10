@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import api from "../../services/api";
-export default function MakePost() {
+export default function MakePost({setTab}) {
   const [data, setData] = useState({
     title: "",
     description: "",
@@ -37,6 +37,10 @@ export default function MakePost() {
     try {
       await api.post("/posts/", data);
       setMessage("Post created successfully!!")
+      setTimeout(()=>{
+        setMessage("")
+        setTab("myposts")
+      },800)
     } catch (err) {
       setError(err.response?.data?.detail ||"failed to create new post.try again");
       console.error(err);

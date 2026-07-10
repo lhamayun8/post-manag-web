@@ -22,6 +22,9 @@ export default function FindFriends() {
             await api.post(`/friends/request/${id}`)
             setMessage("Friend request sent successfully!!")
             getUsers()
+        setTimeout(()=>{
+            setMessage("")
+        },1500)
         }catch(err){
             setError(err.response?.data?.detail ||"Unable to send request");
         }

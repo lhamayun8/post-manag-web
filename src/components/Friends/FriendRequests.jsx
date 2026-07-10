@@ -29,6 +29,9 @@ export default function FriendRequests() {
             await api.put(`/friends/reject/${id}`)
             setMessage("Friend request rejected ")
             getRequests()
+        setTimeout(()=>{
+            setMessage("")
+        },1000)
         }catch(err){
             setError(err.response?.data?.detail ||"failed to reject request");
         }

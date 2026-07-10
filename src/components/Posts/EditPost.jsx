@@ -40,7 +40,6 @@ export default function EditPost({id,setTab}) {
       const read = new FileReader();
       read.onloadend = () => {
         setData({ ...data, image: read.result });
-        setMessage("Image updated successfully!!")
       };
       read.readAsDataURL(file);
     }
@@ -74,22 +73,31 @@ export default function EditPost({id,setTab}) {
       <h2>Edit Post</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
+          <label htmlFor="title">Post Title</label>
           <input
+            id="title"
             name="title"
             value={data.title}
             onChange={handleChange}
+            placeholder="Enter title here"
           ></input>
+          <label htmlFor="description">Description</label>
           <textarea
+            id="description"
             name="description"
             value={data.description}
             onChange={handleChange}
+            placeholder="Description"
           ></textarea>
+          <label htmlFor="category">Category</label>
           <input
             name="category"
             value={data.category}
             onChange={handleChange}
+            placeholder="Example:Technology,etc"
           ></input>
-          <select name="status" value={data.status} onChange={handleChange}>
+          <label htmlFor="status">Post Status</label>
+          <select id="status" name="status" value={data.status} onChange={handleChange}>
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
@@ -101,7 +109,9 @@ export default function EditPost({id,setTab}) {
               </div>
             </div>
           )}
+          <label htmlFor="image">Upload new image</label>
           <input
+            id="image"
             type="file"
             name="image"
             accept="image/*"

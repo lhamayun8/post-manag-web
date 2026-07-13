@@ -16,7 +16,8 @@ class Users(Base):
     role=Column(String,default="user")
     resetcode=Column(String,nullable=True)
     resetcode_expiry=Column(DateTime,nullable=True)
-
+    comment=relationship("Comment")
+    likes=relationship("Like")
 
 class Posts(Base):
     __tablename__="posts"
@@ -29,6 +30,8 @@ class Posts(Base):
     owner_id=Column(Integer,ForeignKey("users.id",ondelete="CASCADE"))
     image=Column(Text,nullable=True)
     owner=relationship("Users",back_populates="posts")
+    comments=relationship("Comment",back_populates="post",cascade="all,delete")
+    likes=relationship("Like",cascade="all,delete")
 
 class FriendRequests(Base):
     __tablename__="friend-requests"
@@ -47,3 +50,22 @@ class Friendship(Base):
     friend_id=Column(Integer,ForeignKey("users.id"))
     created_at=Column(DateTime,default=datetime.utcnow)
     friend=relationship("Users",foreign_keys=[friend_id])
+
+class Like(Base):
+    __tablename__="likes"
+    id=Column(Integer,primary_key=True,index=True)
+    user_id=Column(Integer,ForeignKey("users.id"))
+    post_id=Column(Integer,ForeignKey("posts.id"))
+    created_at=Column(DateTime,default=datetime.utcnow)
+    user=relationship("Users")
+    post=relationship("Posts")
+
+class Comment(Base):
+    __tablename__="comments"
+    id=Column(Integer,primary_key=True,index=True)
+    user_id=Column(Integer,ForeignKey("users.id"))
+    post_id=Column(Integer,ForeignKey("posts.id"))
+    content=Column(String,nullable=False)
+    created_at=Column(DateTime,default=datetime.utcnow)
+    user=relationship("Users")
+    post=relationship("Posts",back_populates="comments")

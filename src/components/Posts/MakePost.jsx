@@ -8,6 +8,12 @@ export default function MakePost({setTab}) {
     status: "draft",
     image: "",
   });
+        const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
   const [error, setError] = useState("");
   const[message,setMessage]=useState("")
   const handleChange = (e) => {
@@ -81,8 +87,18 @@ export default function MakePost({setTab}) {
         </div>
         <button type="submit">Create Post</button>
       </form>
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {error && <p style={{color:"red",fontWeight:"bold"}}>{error}</p>}
+                    {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   );
 }

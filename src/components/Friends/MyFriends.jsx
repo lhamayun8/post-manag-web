@@ -3,6 +3,9 @@ import api from '../../services/api'
 export default function MyFriends() {
     const[friends,setFriends]=useState([])
     const[error,setError]=useState("")
+    const closeerror=()=>{
+    setError("")
+    }
     const getFriends=async()=>{
         try{
             const set=await api.get("/friends/")
@@ -29,7 +32,12 @@ export default function MyFriends() {
         ))}
         </div>
         )}
-      {error && <p style={{ color: "orange" }}>{error}</p>}   
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

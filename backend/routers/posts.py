@@ -1,6 +1,6 @@
 from fastapi import APIRouter,HTTPException,Header,Depends,Query
-from models import Posts,Users,Friendship
-from schema import PostCreate,Post
+from models import Posts,Users,Friendship,Like,Comment
+from schema import PostCreate,Post,CommentCreate,CommentResponse
 from database import SessionLocal
 from authentication import verifytoken,getcurrentuser
 from typing import List,Optional
@@ -111,3 +111,58 @@ def deletepost(post_id:int,currentuser=Depends(getcurrentuser),db: Session = Dep
         db.delete(dbpost)
         db.commit()
         return{"message":"post is deleted"}
+
+@router.post("/{post_id}/like")
+def likepost(post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    post=db.query(Posts).filter(Posts.id==post_id).first()
+    if not post:
+        raise HTTPException(status_code=404,detail="No such post available")
+    exist=db.query(Like).filter(Like.post_id==post_id,Like.user_id==currentuser.id).first()
+    if exist:
+        raise HTTPException(status_code=400,detail="Can not like this post again")
+    like=Like(post_id=post_id,user_id=currentuser.id)
+    db.add(like)
+    db.commit()
+    db.refresh(like)
+    return{"message":"Liked post successfully"}
+
+@router.delete("/{post_id}/like")
+def unlikepost(post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    like=db.query(Like).filter(Like.post_id==post_id,Like.user_id==currentuser.id).first()
+    if not like:
+        raise HTTPException(status_code=404,detail="No like found")
+    db.delete(like)
+    db.commit()
+    return{"message":"Like is removed successfully"}
+
+@router.get("/{post_id}/likes")
+def getlikes(post_id:int,currentuser=Depends(getuserwtoken),db: Session = Depends(get_db)):
+    likes=db.query(Like).filter(Like.post_id==post_id).all()
+    return{"Likes":len(likes),"users":[{"id":like.user.id,"username":like.user.name} for like in likes]}
+
+@router.post("/{post_id}/comments")
+def addcomment(comment:CommentCreate,post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    post=db.query(Posts).filter(Posts.id==post_id).first()
+    if not post:
+        raise HTTPException(status_code=404,detail="No post found")
+    comment=Comment(content=comment.content,post_id=post_id,user_id=currentuser.id)
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return comment
+
+@router.get("/{post_id}/comments")
+def getcomments(post_id:int,db:Session=Depends(get_db)):
+    comments=db.query(Comment).filter(Comment.post_id==post_id).order_by(Comment.created_at.desc()).all()
+    return[{"id":com.id,"content":com.content,"username":com.user.name if com.user else "unknown","created_at":com.created_at,"user_id":com.user_id} for com in comments]
+
+@router.delete("/{post_id}/comments/{comment_id}")
+def deletecomment(post_id:int,comment_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    comment=db.query(Comment).filter(Comment.id==comment_id,Comment.post_id==post_id).first()
+    if not comment:
+        raise HTTPException(status_code=404,detail="No such comment")
+    if comment.user_id!=currentuser.id and currentuser.role!="admin":
+        raise HTTPException(status_code=403,detail="Not allowed")
+    db.delete(comment)
+    db.commit()
+    return{"message":"Comment is deleted successfully"}

@@ -6,6 +6,9 @@ export default function ForgotPassword() {
     const[email,setEmail]=useState("")
     const[error,setError]=useState("")
     const navigate=useNavigate()
+    const closeerror=()=>{
+    setError("")
+    }
     const handleSubmit=async(e)=>{
         e.preventDefault()
         setError("")
@@ -25,7 +28,12 @@ export default function ForgotPassword() {
             <input type="email" placeholder='email' value={email} onChange={(e)=>setEmail(e.target.value)}></input>
             <button>Send code</button>
         </form>
-      {error && <p style={{ color: "orange" }}>{error}</p>}
+          {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

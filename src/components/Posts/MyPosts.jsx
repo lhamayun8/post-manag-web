@@ -5,6 +5,12 @@ export default function MyPosts({setTab,setEditId}) {
     const[posts,setPosts]=useState([])
     const[error,setError]=useState("")
     const[message,setMessage]=useState("")
+              const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
     const getmyposts=async()=>{
         try{
             const set=await api.get("/posts/me")
@@ -70,8 +76,18 @@ export default function MyPosts({setTab,setEditId}) {
             ))}
             </div>
       )}
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {error && <p style={{ color: "orange" }}>{error}</p>}
+                          {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

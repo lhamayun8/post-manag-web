@@ -56,3 +56,19 @@ class Post(BaseModel):
     class Config:
         from_attributes=True
         
+class CommentCreate(BaseModel):
+    content:str
+class CommentResponse(BaseModel):
+    id:int
+    content:str
+    user_id:int
+    created_at:datetime
+    class Config:
+        from_attributes=True
+
+class Like(BaseModel):
+    id:int
+    user_id:int
+    post_id:int
+    class Config:
+        from_attributes=True

@@ -10,6 +10,12 @@ export default function ResetPassword() {
     const[error,setError]=useState("")
     const email=location.state?.email||""
     const code=location.state?.code||""
+    const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
     const handleSubmit=async(e)=>{
         e.preventDefault()
         setMessage("")
@@ -31,8 +37,18 @@ export default function ResetPassword() {
         <input placeholder='new password' type="password" value={data.new} onChange={(e)=>setData({...data,new:e.target.value})}></input>
         <button>Change Password</button>
       </form>
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {error && <p style={{ color: "orange" }}>{error}</p>}
+      {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

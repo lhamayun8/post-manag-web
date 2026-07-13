@@ -8,6 +8,12 @@ export default function EditPassword({setTab}) {
     newpass: "",
     confirmpass: "",
   });
+      const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
   const [err, setError] = useState("");
   const[message,setMessage]=useState("")
   const handleChange = (e) => {
@@ -72,8 +78,18 @@ export default function EditPassword({setTab}) {
         </div>
         <button type="submit">Update Password</button>
       </form>
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {err && <p style={{ color: "orange" }}>{err}</p>}
+                    {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {err && (
+        <div className="error-box">
+        <span>{err}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   );
 }

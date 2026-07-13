@@ -8,6 +8,9 @@ export default function Login() {
   const [err, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
+  const closeerror=()=>{
+    setError("")
+    }
   const handleChange = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
   };
@@ -36,6 +39,7 @@ export default function Login() {
           <input
             name="email"
             type="email"
+            value={data.email}
             placeholder="email"
             onChange={handleChange}
           ></input>
@@ -45,12 +49,18 @@ export default function Login() {
             name="password"
             type="password"
             placeholder="password"
+            value={data.password}
             onChange={handleChange}
           ></input>
         </div>
         <button type="submit">Login User</button>
       </form>
-      {err && <p style={{ color: "orange" }}>{err}</p>}
+       {err && (
+        <div className="error-box">
+        <span>{err}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
       <p>
         Dont have an account yet?<Link to="/register">Register here</Link>
       </p>

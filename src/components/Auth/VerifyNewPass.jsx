@@ -9,6 +9,12 @@ export default function VerifyNewPass() {
     const[code,setCode]=useState("")
     const[error,setError]=useState("")
     const email=location.state?.email||""
+    const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
     const handleSubmit=async(e)=>{
         e.preventDefault()
         setMessage("")
@@ -43,8 +49,18 @@ export default function VerifyNewPass() {
             <button type="submit">Verify code</button>
         </form>
         <button onClick={handleResend} style={{marginTop:"10px"}}>Resend code</button>
-        {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-        {error && <p style={{ color: "orange" }}>{error}</p>}
+              {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

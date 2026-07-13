@@ -6,6 +6,9 @@ export default function Register() {
     const[data,setData]=useState({name:"",email:"",password:""})
     const [error,setError]=useState("")
     const navigate=useNavigate()
+    const closeerror=()=>{
+    setError("")
+    } 
     const handleSubmit=async(e)=>{
         e.preventDefault();
         try{
@@ -34,7 +37,12 @@ export default function Register() {
             </div>
                 <button type="submit">Register User</button>
         </form>
-        {error && <p style={{color:"orange"}}>{error}</p>}
+            {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
         <p>Already have an account?<Link to="/login">Login</Link></p>
     </div>
   )

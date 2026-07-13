@@ -5,6 +5,12 @@ import api from "../../services/api";
 export default function EditPost({id,setTab}) {
   const [err, setError] = useState("");
   const[message,setMessage]=useState("")
+      const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
   const [data, setData] = useState({
     title: "",
     description: "",
@@ -120,8 +126,18 @@ export default function EditPost({id,setTab}) {
         </div>
         <button type="submit" className="btn btn-primary">Update</button>
       </form>
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {err && <p style={{color:"red",fontWeight:"bold"}}>{err}</p>}
+        {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {err && (
+        <div className="error-box">
+        <span>{err}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   );
 }

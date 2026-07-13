@@ -4,6 +4,12 @@ export default function SentRequests() {
     const[error,setError]=useState("")
     const[message,setMessage]=useState("")
     const[requests,setRequests]=useState([])
+    const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
     const getsentRequests=async()=>{
         try{
             const set=await api.get("/friends/sent")
@@ -18,7 +24,7 @@ export default function SentRequests() {
   return (
     <div className='friends-section'>
         <h2>Sent Requests</h2>
-        {requests.length===0?(<p>No pending requests</p>):
+        {requests.length===0?(<p>No pending requests!!</p>):
         (<div className='users-list'>{requests.map((request)=>(
             <div className='user-card'key={request.id}>
                 <div>
@@ -30,8 +36,18 @@ export default function SentRequests() {
         ))}
         </div>
         )}  
-        {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {error && <p style={{ color: "orange" }}>{error}</p>}    
+              {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

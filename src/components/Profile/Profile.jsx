@@ -9,6 +9,9 @@ export default function Profile() {
   const [error, setError] = useState("");
   const[posts,setPost]=useState([])
   const[tab,setTab]=useState("profile")
+      const closeerror=()=>{
+    setError("")
+    }
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -65,8 +68,12 @@ export default function Profile() {
       )}
       {tab==="edit" &&<EditProfile setTab={setTab}></EditProfile>}
       {tab==="password" &&<EditPassword setTab={setTab}></EditPassword>}
-      
-      {error && <p style={{ color: "orange" }}>{error}</p>}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
     </div>
   );

@@ -4,6 +4,12 @@ export default function FriendRequests() {
     const[requests,setRequests]=useState([])
     const[error,setError]=useState("")
     const[message,setMessage]=useState("")
+        const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
     const getRequests=async()=>{
         try{
             const set=await api.get("/friends/requests")
@@ -53,8 +59,18 @@ export default function FriendRequests() {
             ))}
             </div>
         )}
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {error && <p style={{ color: "orange" }}>{error}</p>}
+        {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

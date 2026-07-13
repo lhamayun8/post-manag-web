@@ -6,6 +6,12 @@ export default function EditProfile({setTab}) {
   const [data, setData] = useState({ name: "",email:""});
   const [err, setError] = useState("");
   const[message,setMessage]=useState("")
+      const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -58,8 +64,18 @@ export default function EditProfile({setTab}) {
         </div>
         <button type="submit">Save changes</button>
       </form>
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {err && <p style={{ color: "orange" }}>{err}</p>}
+                    {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {err && (
+        <div className="error-box">
+        <span>{err}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   );
 }

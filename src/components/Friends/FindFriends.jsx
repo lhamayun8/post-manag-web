@@ -5,7 +5,12 @@ export default function FindFriends() {
     const[search,setSearch]=useState("")
     const[error,setError]=useState("")
     const[message,setMessage]=useState("")
-
+        const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
     const getUsers=async ()=>{
         try{
             const set=await api.get("/friends/users")
@@ -59,8 +64,18 @@ export default function FindFriends() {
                     ))
             )}
         </div>
-        {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {error && <p style={{ color: "orange" }}>{error}</p>}
+              {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

@@ -10,6 +10,12 @@ export default function PostInfo() {
   const [error, setError] = useState("");
   const { user } = useAuth();
   const[message,setMessage]=useState("")
+            const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -72,8 +78,18 @@ export default function PostInfo() {
           Back
         </Link>
       </div>
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {error && <p style={{color:"red",fontWeight:"bold"}}>{error}</p>}
+        {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   );
 }

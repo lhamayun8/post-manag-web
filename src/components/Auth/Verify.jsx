@@ -9,6 +9,12 @@ export default function Verify() {
     const[code,setCode]=useState("")
     const[error,setError]=useState("")
     const[message,setMessage]=useState("")
+    const closeerror=()=>{
+    setError("")
+    }
+    const closemessage=()=>{
+      setMessage("")
+    }
     const handleSubmit=async(e)=>{
         e.preventDefault()
         setError("")
@@ -44,8 +50,18 @@ export default function Verify() {
         <button type="submit">Verify</button>
         </form>
         <button onClick={handleResend} style={{marginTop:"15px"}}>Resend code</button>
-      {message && <p style={{color:"green",fontWeight:"bold"}}>{message}</p>}
-      {error && <p style={{ color: "orange" }}>{error}</p>}
+        {message && (
+        <div className="message-box">
+        <span>{message}</span>
+        <button onClick={closemessage}>X</button>
+        </div>
+        )}
+         {error && (
+        <div className="error-box">
+        <span>{error}</span>
+        <button onClick={closeerror}>X</button>
+        </div>
+        )}  
     </div>
   )
 }

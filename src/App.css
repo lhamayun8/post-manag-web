@@ -448,7 +448,7 @@ gap:20px;
     display:flex;
     flex-direction:column;
     gap:15px;
-    min-height: calc(100vh-72px);
+    min-height: calc(100vh - 72px);
     flex-shrink: 0;
 }
 

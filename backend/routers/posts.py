@@ -5,6 +5,7 @@ from database import SessionLocal
 from authentication import verifytoken,getcurrentuser
 from typing import List,Optional
 from sqlalchemy.orm import Session
+from datetime import datetime
 router=APIRouter(prefix="/posts",tags=["posts"])
 
 def post_response(post):
@@ -93,7 +94,10 @@ def editpost(post_id:int,post:PostCreate,currentuser=Depends(getcurrentuser),db:
             dbpost.title=post.title
             dbpost.description=post.description
             dbpost.category=post.category
+            oldstatus=dbpost.status
             dbpost.status=post.status
+            if oldstatus!="published" and dbpost.status=="published":
+                dbpost.published_at=datetime.utcnow()
             dbpost.image=strip_data_uri(post.image)
             db.commit()
             db.refresh(dbpost)

@@ -26,6 +26,8 @@ class Posts(Base):
     description=Column(String)
     category=Column(String)
     created_at=Column(DateTime,default=datetime.utcnow)
+    updated_at=Column(DateTime,default=datetime.utcnow,onupdate=datetime.utcnow)
+    published_at=Column(DateTime,nullable=True)
     status=Column(String,default="draft")
     owner_id=Column(Integer,ForeignKey("users.id",ondelete="CASCADE"))
     image=Column(Text,nullable=True)

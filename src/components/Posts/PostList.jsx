@@ -107,10 +107,6 @@ export default function PostList() {
     }
   }
   const togglecomments=(postid)=>{
-    if(!user){
-      navigate("/login")
-      return;
-    }
     setshowcoomment(prev=>({...prev,[postid]:!prev[postid]}))
     if(!comments[postid]){
       getcomments(postid)
@@ -154,7 +150,7 @@ export default function PostList() {
           </div>
         )}
                 <p>Posted by <b>{post.username}</b></p>
-                <p>{formatDate(post.created_at)}</p>
+                <p>Published:{formatDate(post.published_at||post.created_at)}</p>
                 <p>Category:{post.category}</p>
                 <div className="likes-section">
                   <p className="likes-count" onClick={()=>togglelikes(post.id)}>{likes[post.id]||0} Likes</p>

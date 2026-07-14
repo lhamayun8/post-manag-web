@@ -43,6 +43,7 @@ class PostCreate(BaseModel):
     category:str
     status:str="draft"
     image:Optional[str]=None
+    tagged_users:list[int]=[]
 
 class Post(BaseModel):
     id:int

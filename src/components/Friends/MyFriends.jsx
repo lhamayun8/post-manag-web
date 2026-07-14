@@ -13,7 +13,7 @@ export default function MyFriends() {
             const set=await api.get("/friends/")
             setFriends(set.data)
         }catch(err){
-            setError(err.response?.data?.detail ||"failed to load friends");
+            setError(error.response?.data?.detail ||"failed to load friends");
         }
     }
     useEffect(()=>{
@@ -24,7 +24,7 @@ export default function MyFriends() {
             await api.delete(`/friends/${id}`)
             setFriends((prev)=>prev.filter((friend)=>friend.id!==id))
         }catch(err){
-             setError(err.response?.data?.detail ||"failed to remove friend");
+             setError(error.response?.data?.detail ||"failed to remove friend");
         }
     }
   return (

@@ -27,7 +27,7 @@ export default function ResetPassword() {
                 navigate("/login");
             },500)
         }catch(err){
-             setError(err.response?.data?.detail || "Password can not be changed")
+             setError(error.response?.data?.detail || "Password can not be changed")
         }
     }
   return (

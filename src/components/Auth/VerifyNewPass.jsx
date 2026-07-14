@@ -26,7 +26,7 @@ export default function VerifyNewPass() {
                 navigate("/reset-password",{state:{email,code}});
             },1500)
         }catch(err){
-             setError(err.response?.data?.detail || "Invalid verification code")
+             setError(error.response?.data?.detail || "Invalid verification code")
         }
     }
     const handleResend=async(e)=>{
@@ -36,7 +36,7 @@ export default function VerifyNewPass() {
             await api.post("/users/forgot-password",null,{params:{email}})
             setMessage("New verification codeis sent to your email")
         }catch(err){
-            setError(err.response?.data?.detail || "could not send new code")
+            setError(error.response?.data?.detail || "could not send new code")
         }
 
     }

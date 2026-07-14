@@ -15,7 +15,7 @@ export default function FriendRequests() {
             const set=await api.get("/friends/requests")
             setRequests(set.data)
         }catch(err){
-            setError(err.response?.data?.detail ||"failed to load requests");
+            setError(error.response?.data?.detail ||"failed to load requests");
         }
     }
     useEffect(()=>{
@@ -27,7 +27,7 @@ export default function FriendRequests() {
             setMessage("Friend request accepted!!")
             getRequests()
         }catch(err){
-            setError(err.response?.data?.detail ||"failed to accept request");
+            setError(error.response?.data?.detail ||"failed to accept request");
         }
     }
     const rejectRequest=async(id)=>{
@@ -39,7 +39,7 @@ export default function FriendRequests() {
             setMessage("")
         },1000)
         }catch(err){
-            setError(err.response?.data?.detail ||"failed to reject request");
+            setError(error.response?.data?.detail ||"failed to reject request");
         }
     }
   return (

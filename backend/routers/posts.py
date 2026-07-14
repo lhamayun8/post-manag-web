@@ -1,16 +1,17 @@
 from fastapi import APIRouter,HTTPException,Header,Depends,Query
-from models import Posts,Users,Friendship,Like,Comment
+from models import Posts,Users,Friendship,Like,Comment,Tags
 from schema import PostCreate,Post,CommentCreate,CommentResponse
 from database import SessionLocal
 from authentication import verifytoken,getcurrentuser
 from typing import List,Optional
 from sqlalchemy.orm import Session
 from datetime import datetime
+from emailservice import sendemail
 router=APIRouter(prefix="/posts",tags=["posts"])
 
 def post_response(post):
     return{"id":post.id,"title":post.title,"description":post.description,"category":post.category,"status":post.status,
-           "image":post.image,"created_at":post.created_at,"username":post.owner.name if post.owner else None,"owner_id":post.owner_id}
+           "image":post.image,"created_at":post.created_at,"username":post.owner.name if post.owner else None,"owner_id":post.owner_id,"tagged_users":[tag.user.name for tag in post.tagged_friends]}
 
 def get_db():
     db=SessionLocal()
@@ -63,8 +64,12 @@ def makepost(post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = D
     image=strip_data_uri(post.image),
     owner_id=currentuser.id)
     db.add(newpost)
-    db.commit()
     db.refresh(newpost)
+    for friend_id in post.tagged_users:
+        friend=db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id==friend_id).first()
+        if friend:
+            db.add(Tags(post_id=newpost.id,user_id=friend_id))
+    db.commit()
     return post_response(newpost)
 
     
@@ -150,13 +155,15 @@ def getlikes(post_id:int,currentuser=Depends(getuserwtoken),db: Session = Depend
     return{"Likes":len(likes),"users":[{"id":like.user.id,"username":like.user.name} for like in likes]}
 
 @router.post("/{post_id}/comments")
-def addcomment(comment:CommentCreate,post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
-    get_post(post_id,db)
+async def addcomment(comment:CommentCreate,post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    post=get_post(post_id,db)
     comment=Comment(content=comment.content,post_id=post_id,user_id=currentuser.id)
     db.add(comment)
     db.commit()
     db.refresh(comment)
-    return comment
+    if post.owner_id!=currentuser.id:
+        await sendemail(post.owner.email,f"{currentuser.name} commented on your post '{post.title}'.","comment")
+    return{"id":comment.id,"content":comment.content,"user_id":comment.user_id}
 
 @router.get("/{post_id}/comments")
 def getcomments(post_id:int,db:Session=Depends(get_db)):

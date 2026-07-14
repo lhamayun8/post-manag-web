@@ -41,7 +41,7 @@ export default function Dashboard() {
       await api.put(`/admin/block/${id}`)
       fetchdata()
     }catch(err){
-      setError(err.response?.data?.detail ||"Failed to block");
+      setError(error.response?.data?.detail ||"Failed to block");
     }
   }
   const activateuser=async(id)=>{
@@ -49,7 +49,7 @@ export default function Dashboard() {
       await api.put(`/admin/activate/${id}`)
       fetchdata()
     }catch(err){
-      setError(err.response?.data?.detail ||"Failed to activate user");
+      setError(error.response?.data?.detail ||"Failed to activate user");
     }
   }
   const deletepost=async(id)=>{
@@ -59,7 +59,7 @@ export default function Dashboard() {
       await api.delete(`/admin/posts/${id}`)
       fetchdata()
     }catch(err){
-      setError(err.response?.data?.detail ||"Failed to delete post");
+      setError(error.response?.data?.detail ||"Failed to delete post");
     }
   }
   if (!user || user.role !== "admin") {

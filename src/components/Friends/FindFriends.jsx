@@ -16,7 +16,7 @@ export default function FindFriends() {
             const set=await api.get("/friends/users")
             setUsers(set.data)
         }catch(err){
-            setError(err.response?.data?.detail ||"failed to load users");
+            setError(error.response?.data?.detail ||"failed to load users");
         }
     }
     useEffect(()=>{
@@ -31,7 +31,7 @@ export default function FindFriends() {
             setMessage("")
         },1500)
         }catch(err){
-            setError(err.response?.data?.detail ||"Unable to send request");
+            setError(error.response?.data?.detail ||"Unable to send request");
         }
     }
     const list=users.filter((user)=>user.name.toLowerCase().includes(search.toLowerCase()))

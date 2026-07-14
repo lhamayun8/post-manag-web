@@ -16,7 +16,7 @@ export default function MyDrafts({setTab,setEditId}) {
             const set=await api.get("/posts/me/drafts")
             setDrafts(set.data)
         }catch(err){
-            setError(err.response?.data?.detail ||"failed to load drafts");
+            setError(error.response?.data?.detail ||"failed to load drafts");
         }
     }
 
@@ -43,7 +43,7 @@ export default function MyDrafts({setTab,setEditId}) {
             setMessage("")
         },1000)
       }catch(err){
-         setError(err.response?.data?.detail ||"Failed to delete post");
+         setError(error.response?.data?.detail ||"Failed to delete post");
       }
   };
   return (

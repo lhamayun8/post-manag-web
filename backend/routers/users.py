@@ -131,7 +131,6 @@ def login(user:UserLogin,db:Session=Depends(get_db)):
         return {"access_token":token,"role":dbuser.role,"user":{"id":dbuser.id,"name":dbuser.name
                                                                 ,"email":dbuser.email,"role":dbuser.role}}
     else:
-        db.close()
         raise HTTPException(status_code=401,detail="Invalid email or password.")
 
 @router.get("/me",response_model=User)
@@ -145,7 +144,7 @@ def logout():
 @router.put("/edit")
 def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
         user=get_user(currentuser.id,db)
-        if db.query(Users).filter(Users.name==user.name,Users.id!=currentuser.id).first():
+        if db.query(Users).filter(Users.name==data.name,Users.id!=currentuser.id).first():
             db.close()
             raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
         user.name=data.name

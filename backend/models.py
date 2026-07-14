@@ -19,6 +19,7 @@ class Users(Base):
     comment=relationship("Comment")
     likes=relationship("Like")
     is_active=Column(Boolean,default=True)
+    tagged_posts=relationship("Tags",back_populates="user")
 
 class Posts(Base):
     __tablename__="posts"
@@ -35,6 +36,7 @@ class Posts(Base):
     owner=relationship("Users",back_populates="posts")
     comments=relationship("Comment",back_populates="post",cascade="all,delete")
     likes=relationship("Like",cascade="all,delete")
+    tagged_friends=relationship("Tags",back_populates="post",cascade="all,delete")
 
 class FriendRequests(Base):
     __tablename__="friend-requests"
@@ -72,3 +74,11 @@ class Comment(Base):
     created_at=Column(DateTime,default=datetime.utcnow)
     user=relationship("Users")
     post=relationship("Posts",back_populates="comments")
+
+class Tags(Base):
+    __tablename__="tags"
+    id=Column(Integer,primary_key=True)
+    post_id=Column(Integer,ForeignKey("posts.id",ondelete="CASCADE"))
+    user_id=Column(Integer,ForeignKey("users.id"))
+    post=relationship("Posts",back_populates="tagged_friends")
+    user=relationship("Users",back_populates="tagged_posts")

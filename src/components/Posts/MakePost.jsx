@@ -48,7 +48,7 @@ export default function MakePost({setTab}) {
         setTab("myposts")
       },800)
     } catch (err) {
-      setError(err.response?.data?.detail ||"failed to create new post.try again");
+      setError(error.response?.data?.detail ||"failed to create new post.try again");
       console.error(err);
     }
   };

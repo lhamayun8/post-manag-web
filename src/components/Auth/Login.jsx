@@ -27,8 +27,12 @@ export default function Login() {
         navigate("/posts");
       }
     } catch (err) {
+      if(err.response?.status===422){
+        setError("Please enter valid email or a password of at least 8 characters.")
+      }else{
       setError(err.response?.data?.detail || "Login failed.");
     }
+  }
   };
 
   return (

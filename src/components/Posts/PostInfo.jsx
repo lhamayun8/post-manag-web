@@ -23,7 +23,7 @@ export default function PostInfo() {
         const set = await api.get(`/posts/${id}`);
         setPost(set.data);
       } catch (err) {
-        setError(err.response?.data?.detail || "failed to load posts");
+        setError(error.response?.data?.detail || "failed to load posts");
       }
     };
     fetchPost();

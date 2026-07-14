@@ -26,7 +26,7 @@ export default function Verify() {
                 navigate("/login")
             },1000)
         }catch(err){
-            setError(err.response?.data?.detail||"Verification failed")
+            setError(error.response?.data?.detail||"Verification failed")
         }
     }
     const handleResend=async(e)=>{
@@ -36,7 +36,7 @@ export default function Verify() {
             await api.post("/users/resend-verification",null,{params:{email}})
             setMessage("New verification code is sent to your email")
         }catch(err){
-            setError(err.response?.data?.detail || "could not send new code")
+            setError(error.response?.data?.detail || "could not send new code")
         }
 
     }

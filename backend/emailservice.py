@@ -20,6 +20,11 @@ async def sendemail(email:str,code,email_type:str):
         heading="Password Reset"
         greeting="We recieved a request from you to reset your password"
         instruction="Use the verification code below to reset your password"
+    elif email_type=="comment":
+        subject="Comment Alert - PostManager"
+        heading="Comment Alert"
+        greeting="Someone just commented on your post!!"
+        instruction="View the new comment and engage!!"
     else:
         raise ValueError("invalid email type")
     html = f"""

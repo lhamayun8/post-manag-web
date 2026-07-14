@@ -17,8 +17,8 @@ export default function EditProfile({setTab}) {
       try {
         const set = await api.get("/users/me");
         setData({ name: set.data.name,email:set.data.email});
-      } catch (error) {
-        setError(error.response?.data?.detail ||"Failed to load your profile");
+      } catch (err) {
+        setError(err.response?.data?.detail ||"Failed to load your profile");
       }
     };
     fetchProfile();
@@ -40,8 +40,8 @@ export default function EditProfile({setTab}) {
         setMessage("")
         setTab("profile")
       },1000)
-    } catch (error) {
-      setError(error.response?.data?.detail ||"Can not update profile.");
+    } catch (err) {
+      setError(err.response?.data?.detail ||"Can not update profile.");
     }
   };
 

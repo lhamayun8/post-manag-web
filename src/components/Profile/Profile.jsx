@@ -28,7 +28,7 @@ export default function Profile() {
       setLikes((prev)=>({...prev,[postid]:set.data.Likes}))
       setlikeusers((prev)=>({...prev,[postid]:set.data.users}))
     }catch(err){
-       setError(err.response?.data?.detail || "Can not load likes.");
+       setError(error.response?.data?.detail || "Can not load likes.");
     }
   }
   const likepost=async(postid)=>{
@@ -40,7 +40,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(err.response?.data?.detail || "Can not like post.");
+      setError(error.response?.data?.detail || "Can not like post.");
     }
   }
   const unlikepost=async(postid)=>{
@@ -52,7 +52,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(err.response?.data?.detail || "Can not unlike post.");
+      setError(error.response?.data?.detail || "Can not unlike post.");
     }
   }
   const getcomments=async(postid)=>{
@@ -64,7 +64,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(err.response?.data?.detail || "Can not get comments.");
+      setError(error.response?.data?.detail || "Can not get comments.");
     }
   }
   const addcomment=async(postid)=>{
@@ -79,7 +79,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(err.response?.data?.detail || "Can not add comment.");
+      setError(error.response?.data?.detail || "Can not add comment.");
     }
   }
   const deletecomment=async(postid,commentid)=>{
@@ -91,7 +91,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(err.response?.data?.detail || "Can not delete comment.");
+      setError(error.response?.data?.detail || "Can not delete comment.");
     }
   }
   const togglecomments=(postid)=>{
@@ -129,7 +129,7 @@ export default function Profile() {
           posts.data.forEach(post=>{alllikes(post.id);getcomments(post.id)})
         }
       } catch (err) {
-        setError(err.response?.data?.detail ||"failed to load profile");
+        setError(error.response?.data?.detail ||"failed to load profile");
       }
     };
     fetchProfile();

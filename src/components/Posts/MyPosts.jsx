@@ -16,7 +16,7 @@ export default function MyPosts({setTab,setEditId}) {
             const set=await api.get("/posts/me")
             setPosts(set.data)
         }catch(err){
-            setError(err.response?.data?.detail ||"failed to load your posts")
+            setError(error.response?.data?.detail ||"failed to load your posts")
         }
     }
     useEffect(()=>{
@@ -42,7 +42,7 @@ export default function MyPosts({setTab,setEditId}) {
             setMessage("")
         },1000)
       }catch(err){
-         setError(err.response?.data?.detail ||"Failed to delete post");
+         setError(error.response?.data?.detail ||"Failed to delete post");
       }
   };
   return (

@@ -15,7 +15,7 @@ export default function SentRequests() {
             const set=await api.get("/friends/sent")
             setRequests(set.data)
         }catch(err){
-            setError(err.response?.data?.detail ||"failed to load sent requests");
+            setError(error.response?.data?.detail ||"failed to load sent requests");
         }
     }
     useEffect(()=>{

@@ -37,6 +37,7 @@ const privateroutes = [
   { path: "/posts/new", element: <MakePost></MakePost> },
   { path: "/posts/edit/:id", element: <EditPost></EditPost> },
   { path: "/profile", element: <Profile></Profile> },
+  {path:"/profile/:id",element:<Profile></Profile>},
   { path: "/profile/edit", element: <EditProfile></EditProfile> },
   { path: "/profile/changepass", element: <EditPassword></EditPassword> },
   { path: "/dashboard", element: <Dashboard></Dashboard> },

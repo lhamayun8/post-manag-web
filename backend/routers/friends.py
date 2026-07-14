@@ -96,3 +96,17 @@ def friendlist(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
 def requestssent(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
     request=db.query(FriendRequests).filter(FriendRequests.sender_id==currentuser.id,FriendRequests.status=="pending").all()
     return[{"id":req.id,"name":req.receiver.name,"email":req.receiver.email} for req in request]
+
+@router.get("/user/{user_id}")
+def getuserprofile(user_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.id==user_id).first()
+    if not user:
+        raise HTTPException(status_code=404,detail="User not found")
+    return{"id":user.id,"name":user.name,"email":user.email,"role":user.role}
+
+@router.delete("/{friend_id}")
+def removefriend(friend_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+    db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id==friend_id).delete()
+    db.query(Friendship).filter(Friendship.user_id==friend_id,Friendship.friend_id==currentuser.id).delete()
+    db.commit()
+    return{"message":"friend is removed"}

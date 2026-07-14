@@ -263,7 +263,7 @@ button:disabled {
   padding: 0;
 }
 .profile-card {
-  width: 500px;
+  width: 900px;
   margin: 30px auto;
   background: white;
   padding: 30px;
@@ -331,7 +331,66 @@ button:disabled {
     background:#666;
 }
 
+.user-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 22px;
+    margin-bottom:16px;
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+    transition:transform .2s ease, box-shadow .2s ease;
+}
 
+.user-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+
+.user-info{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+
+.user-avatar{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#6366f1,#4338ca);
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:22px;
+    font-weight:700;
+    flex-shrink:0;
+}
+
+.user-details h4{
+    margin:0;
+    font-size:18px;
+    color:#222;
+}
+
+.user-details p{
+    margin:4px 0 0;
+    color:#666;
+    font-size:14px;
+}
+
+.friend-actions{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.friend-actions .btn{
+    min-width:120px;
+    padding:10px 16px;
+    border-radius:8px;
+}
 .friends-content{
     flex:1;
     padding:20px;
@@ -339,7 +398,34 @@ button:disabled {
 .friends-section {
   width: 100%;
 }
+.profile-posts{
+    margin-top:30px;
+}
 
+.profile-post-card{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:15px;
+    box-shadow:0 3px 10px rgba(0,0,0,.1);
+}
+
+.profile-post-card img{
+    width:100%;
+    max-height:500px;
+    object-fit:cover;
+    border-radius:10px;
+}
+.profile-card{
+    position:relative;
+    padding:30px;
+}
+
+.back-btn{
+    position:absolute;
+    top:15px;
+    left:15px;
+}
 .search-input {
   width: 100%;
   padding: 10px;

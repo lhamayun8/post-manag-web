@@ -1122,7 +1122,7 @@ gap:20px;
 }
 
 .admin-section h2 {
-  color: #2c3e50;
+  color:darkblue;
   margin-bottom: 1rem;
 }
 
@@ -1137,7 +1137,7 @@ table {
 }
 
 th {
-  background: #f8fafc;
+  background:lightgrey;
   color: #475569;
   padding: 15px;
 }

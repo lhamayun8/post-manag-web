@@ -18,6 +18,7 @@ class Users(Base):
     resetcode_expiry=Column(DateTime,nullable=True)
     comment=relationship("Comment")
     likes=relationship("Like")
+    is_active=Column(Boolean,default=True)
 
 class Posts(Base):
     __tablename__="posts"

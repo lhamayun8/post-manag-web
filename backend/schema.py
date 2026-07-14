@@ -30,6 +30,7 @@ class User(BaseModel):
     name:str
     email:str
     role:str="user"
+    is_active:bool=True
     class Config:
         from_attributes=True
 

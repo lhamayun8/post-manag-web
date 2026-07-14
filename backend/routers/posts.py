@@ -11,12 +11,19 @@ router=APIRouter(prefix="/posts",tags=["posts"])
 def post_response(post):
     return{"id":post.id,"title":post.title,"description":post.description,"category":post.category,"status":post.status,
            "image":post.image,"created_at":post.created_at,"username":post.owner.name if post.owner else None,"owner_id":post.owner_id}
+
 def get_db():
     db=SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+def get_post(post_id:int,db:Session=Depends(get_db)):
+    post=db.query(Posts).filter(Posts.id==post_id).first()
+    if not post:
+        raise HTTPException(status_code=404,detail="post is not found")
+    return post
 
 def getuserwtoken(authorization:Optional[str]=Header(None),db:Session=Depends(get_db)):
     if not authorization:
@@ -118,9 +125,7 @@ def deletepost(post_id:int,currentuser=Depends(getcurrentuser),db: Session = Dep
 
 @router.post("/{post_id}/like")
 def likepost(post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
-    post=db.query(Posts).filter(Posts.id==post_id).first()
-    if not post:
-        raise HTTPException(status_code=404,detail="No such post available")
+    get_post(post_id,db)
     exist=db.query(Like).filter(Like.post_id==post_id,Like.user_id==currentuser.id).first()
     if exist:
         raise HTTPException(status_code=400,detail="Can not like this post again")
@@ -146,9 +151,7 @@ def getlikes(post_id:int,currentuser=Depends(getuserwtoken),db: Session = Depend
 
 @router.post("/{post_id}/comments")
 def addcomment(comment:CommentCreate,post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
-    post=db.query(Posts).filter(Posts.id==post_id).first()
-    if not post:
-        raise HTTPException(status_code=404,detail="No post found")
+    get_post(post_id,db)
     comment=Comment(content=comment.content,post_id=post_id,user_id=currentuser.id)
     db.add(comment)
     db.commit()

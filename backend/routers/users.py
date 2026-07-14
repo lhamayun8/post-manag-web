@@ -18,11 +18,28 @@ def get_db():
     finally:
         db.close()
 
+def get_user(user_id:int,db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.id==user_id).first()
+    if not user:
+        raise HTTPException(status_code=404,detail="User not found")
+    return user
+
+def checkemail(email:str,db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.email==email).first()
+    if not user:
+        raise HTTPException(status_code=404,detail="No such email exists.Please register this email.")
+    return user
+
+def emailexist(email:str,db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.email==email).first()
+    if user:
+
+        raise HTTPException(status_code=400,detail="Email already exists")
+    return user
+
 @router.post("/register",response_model=User)
 async def registeruser(user:UserCreate,db:Session=Depends(get_db)):
-    if db.query(Users).filter(Users.email==user.email).first():
-        db.close()
-        raise HTTPException(status_code=400,detail="Email already exists")
+    emailexist(user.email,db)
     if db.query(Users).filter(Users.name==user.name).first():
         db.close()
         raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
@@ -37,10 +54,7 @@ async def registeruser(user:UserCreate,db:Session=Depends(get_db)):
 
 @router.post("/reset-password-code")
 def reset_password_code(data:VerifyCode,db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.email==data.email).first()
-    if not user:
-        db.close()
-        raise HTTPException(status_code=404,detail="User does not exist")
+    user=checkemail(data.email,db)
     if user.resetcode!=data.code:
         db.close()
         raise HTTPException(status_code=400,detail="invalid reset code.Try again!!")
@@ -49,10 +63,7 @@ def reset_password_code(data:VerifyCode,db:Session=Depends(get_db)):
 
 @router.post("/forgot-password")
 async def forgotpassword(email:str=Query(...),db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.email==email).first()
-    if not user:
-        db.close()
-        raise HTTPException(status_code=404,detail="No such email exists.Please register this email.")
+    user=checkemail(email,db)
     code=str(random.randint(100000,999999))
     user.resetcode=code
     user.resetcode_expiry=datetime.utcnow()+timedelta(minutes=15)
@@ -63,10 +74,7 @@ async def forgotpassword(email:str=Query(...),db:Session=Depends(get_db)):
 
 @router.post("/reset-password")
 async def resetpassword(data:ResetPassword,db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.email==data.email).first()
-    if not user:
-        db.close()
-        raise HTTPException(status_code=404,detail="No such email")
+    user=checkemail(data.email,db)
     if user.resetcode!=data.code:
         db.close()
         raise HTTPException(status_code=400,detail="Invalid verification code")
@@ -81,10 +89,7 @@ async def resetpassword(data:ResetPassword,db:Session=Depends(get_db)):
 
 @router.post("/verify")
 def verifyemail(data:VerifyCode,db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.email==data.email).first()
-    if not user:
-        db.close()
-        raise HTTPException(status_code=404,detail="User not found")
+    user=checkemail(data.email,db)
     if user.is_verified:
         db.close()
         raise HTTPException(status_code=400,detail="Email is already verified")
@@ -100,10 +105,7 @@ def verifyemail(data:VerifyCode,db:Session=Depends(get_db)):
 
 @router.post("/resend-verification")
 async def resend_verification(email:str=Query(...),db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.email==email).first()
-    if not user:
-        db.close()
-        raise HTTPException(status_code=404,detail="No such email exists.Please register this email.")
+    user=checkemail(email,db)
     if user.is_verified:
         db.close()
         raise HTTPException(status_code=400,detail="Email is already verified")
@@ -119,6 +121,8 @@ async def resend_verification(email:str=Query(...),db:Session=Depends(get_db)):
 def login(user:UserLogin,db:Session=Depends(get_db)):
     dbuser=db.query(Users).filter_by(email=user.email).first()
     if dbuser and verifypass(user.password,dbuser.password):
+        if not dbuser.is_active:
+            raise HTTPException(status_code=403,detail="Your account has been blocked by admin")
         if not dbuser.is_verified:
             db.close()
             raise HTTPException(status_code=403,detail="Please verify your email")
@@ -140,9 +144,7 @@ def logout():
 
 @router.put("/edit")
 def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-        user=db.query(Users).filter(Users.id==currentuser.id).first()
-        if not user:
-            raise HTTPException(status_code=404,detail="user not found")
+        user=get_user(currentuser.id,db)
         if db.query(Users).filter(Users.name==user.name,Users.id!=currentuser.id).first():
             db.close()
             raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
@@ -153,13 +155,10 @@ def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser),db:Session=Dep
 
 @router.put("/changepass")
 def editpassword(data:ChangePass,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-        user=db.query(Users).filter(Users.id==currentuser.id).first()
-        if user:
-            if verifypass(data.old,user.password):
-                user.password=hashpass(data.new)
-                db.commit()
-                return{"message":"Password is changed"}
-            else:
-                raise HTTPException(status_code=400,detail="Current password is not correct. ")
+        user=get_user(currentuser.id,db)
+        if verifypass(data.old,user.password):
+            user.password=hashpass(data.new)
+            db.commit()
+            return{"message":"Password is changed"}
         else:
-            raise HTTPException(status_code=404,detail="User not found")
+            raise HTTPException(status_code=400,detail="Current password is not correct. ")

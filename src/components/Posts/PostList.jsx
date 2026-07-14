@@ -191,7 +191,7 @@ export default function PostList() {
                   <span>{formatDate(comment.created_at)}</span>
                   </div>
                   <p>{comment.content}</p>
-                  {user && user.id===comment.user_id && (<button className="comment-delete" onClick={()=>deletecomment(post.id,comment.id)}>Delete Comment</button>)}
+                  {user && (user.id===comment.user_id ||user.role==="admin") && (<button className="comment-delete" onClick={()=>deletecomment(post.id,comment.id)}>Delete Comment</button>)}
                 </div>
                 </div>
                 ))}

@@ -5,12 +5,19 @@ from models import Users,FriendRequests,Friendship
 from authentication import getcurrentuser
 from routers.sockets import notify_user
 router=APIRouter(prefix="/friends",tags=["friends"])
+
 def get_db():
     db=SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+def get_user(user_id:int,db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.id==user_id).first()
+    if not user:
+        raise HTTPException(status_code=404,detail="User not found")
+    return user
 
 @router.get("/users")
 def users(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
@@ -42,10 +49,7 @@ async def send_request(user_id:int,currentuser=Depends(getcurrentuser),db:Sessio
     if user_id==currentuser.id:
         db.close()
         raise HTTPException(status_code=400,detail="Can not send request to yourself.")
-    set=db.query(Users).filter(Users.id==user_id).first()
-    if not set:
-        db.close()
-        raise HTTPException(status_code=404,detail="User does not exist")
+    get_user(user_id,db)
     exist=db.query(FriendRequests).filter(FriendRequests.sender_id==currentuser.id,
                                           FriendRequests.receiver_id==user_id,
                                           FriendRequests.status=="pending").first()
@@ -99,9 +103,7 @@ def requestssent(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db))
 
 @router.get("/user/{user_id}")
 def getuserprofile(user_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.id==user_id).first()
-    if not user:
-        raise HTTPException(status_code=404,detail="User not found")
+    user=get_user(user_id,db)
     return{"id":user.id,"name":user.name,"email":user.email,"role":user.role}
 
 @router.delete("/{friend_id}")

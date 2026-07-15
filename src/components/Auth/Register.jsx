@@ -14,9 +14,13 @@ export default function Register() {
         try{
             await api.post("/users/register",data)
             navigate("/verify",{state:{email:data.email}})
-        }catch(err){
-            setError(err.response?.data?.detail || "Registration failed.");
+        }catch(error){
+        if(error.response?.status===422){
+            setError("Please enter valid email or a password of at least 8 characters.")
+        }else{
+            setError(error.response?.data?.detail || "Registration failed.");
         }
+    }
     }
     const handleChange=((e)=>{
         setData({...data,[e.target.name]:e.target.value})

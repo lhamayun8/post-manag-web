@@ -82,3 +82,14 @@ class Tags(Base):
     user_id=Column(Integer,ForeignKey("users.id"))
     post=relationship("Posts",back_populates="tagged_friends")
     user=relationship("Users",back_populates="tagged_posts")
+
+class Notifcation(Base):
+    __tablename__="notifications"
+    id=Column(Integer,primary_key=True)
+    user_id=Column(Integer,ForeignKey("users.id",ondelete="CASCADE"))
+    post_id=Column(Integer,ForeignKey("posts.id",ondelete="CASCADE"))
+    message=Column(String,nullable=False)
+    is_read=Column(Boolean,default=False)
+    created_at=Column(DateTime,default=datetime.utcnow)
+    user=relationship("Users")
+    post=relationship("Posts")

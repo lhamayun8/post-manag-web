@@ -138,7 +138,24 @@ select {
   flex-direction: column;
   gap: 0.5rem;
 }
+.create-post-fields {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
 
+.create-post-fields label {
+    margin-bottom:5px;
+    font-size:16px;
+    font-weight:600;
+    color:#333;
+}
+
+.create-post-fields input,
+.create-post-fields textarea,
+.create-post-fields select {
+    font-size:16px;
+}
 .auth-container h2 {
   text-align: center;
   margin-bottom: 2rem;
@@ -1176,6 +1193,145 @@ tr:hover {
   flex: 1;
   min-width: 120px;
   text-align: center;
+}
+.notification-container{
+    position:relative;
+    display: flex;
+    align-items: center;
+}
+
+.notification-btn {
+    position: relative;
+    border: none;
+    background: transparent;
+    color: #ecf0f1;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 22px;
+    cursor: pointer;
+    transition: background 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.notification-btn:hover {
+    background: #394653;
+}
+
+.notification-dropdown{
+    position:absolute;
+    right:0;
+    top:45px;
+    width:360px;
+    background:white;
+    border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,.15);
+    overflow:hidden;
+    z-index:1000;
+}
+
+.notification-badge{
+
+    position:absolute;
+    top:-8px;
+    right:-10px;
+
+    background:#ed4956;
+    color:white;
+
+    width:20px;
+    height:20px;
+
+    border-radius:50%;
+
+    font-size:12px;
+    font-weight:bold;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+}
+
+
+.notification-box{
+
+    position:absolute;
+    right:0;
+    top:40px;
+
+    width:360px;
+    border-radius:12px;
+
+    box-shadow:
+    0 4px 20px rgba(0,0,0,.15);
+
+    overflow:hidden;
+
+    z-index:1000;
+
+}
+
+
+
+.notification-item{
+
+    padding:15px;
+
+    border-bottom:1px solid #eee;
+
+    cursor:pointer;
+
+    display:flex;
+    flex-direction:column;
+    color: #111827;
+
+}
+
+
+.notification-item:hover{
+
+    background:#fafafa;
+
+}
+
+
+.notification-item.unread{
+
+    background:#eef6ff;
+
+    font-weight:600;
+
+}
+
+
+.notification-item.read{
+
+    background:white;
+
+}
+
+
+
+.notification-time{
+
+    color:#777;
+
+    font-size:12px;
+
+    margin-top:5px;
+
+}
+
+
+.notification-empty{
+
+    padding:30px;
+
+    text-align:center;
+
+    color:#777;
+
 }
 
 .vite {

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import api from "../../services/api";
 export default function MakePost({setTab}) {
   const [data, setData] = useState({
@@ -7,15 +7,21 @@ export default function MakePost({setTab}) {
     category: "",
     status: "draft",
     image: "",
+    tagged_users:[]
   });
-        const closeerror=()=>{
+  const closeerror=()=>{
     setError("")
-    }
-    const closemessage=()=>{
-      setMessage("")
-    }
+  }
+  const closemessage=()=>{
+    setMessage("")
+  }
+  const[friends,setFriends]=useState([])
   const [error, setError] = useState("");
   const[message,setMessage]=useState("")
+  useEffect(()=>{
+    api.get("/posts/friends").then
+    (set=>setFriends(set.data))
+  },[])
   const handleChange = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
   };
@@ -48,15 +54,14 @@ export default function MakePost({setTab}) {
         setTab("myposts")
       },800)
     } catch (err) {
-      setError(error.response?.data?.detail ||"failed to create new post.try again");
-      console.error(err);
+      setError(error.response?.data?.detail ||"Failed to create new post.Try again");
     }
   };
   return (
-    <div className="auth-container">
+    <div className="auth-container create-post-form">
       <h2>Create new post</h2>
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
+        <div className="create-post-fields">
           <input
             name="title"
             placeholder="title"
@@ -84,6 +89,12 @@ export default function MakePost({setTab}) {
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
+          <label>Tag Friends</label>
+          <select multiple value={data.tagged_users} onChange={(e)=>setData({...data,tagged_users:[...e.target.selectedOptions].map(option=>Number(option.value))})}
+          >{friends.map(friend=>(
+          <option key={friend.id} value={friend.id}>
+            {friend.name}</option>
+          ))}</select>
         </div>
         <button type="submit">Create Post</button>
       </form>

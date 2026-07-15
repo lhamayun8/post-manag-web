@@ -42,8 +42,12 @@ export default function EditPassword({setTab}) {
         setTab("profile")
       },500)
     } catch (err) {
+      if(err.response?.status===422){
+        setError("Please enter valid password of at least 8 characters.")
+      }else{
       setError(err.response?.data?.detail ||"failed to update password");
     }
+  }
   };
   return (
     <div className="auth-container">

@@ -1,5 +1,5 @@
 from fastapi import APIRouter,HTTPException,Header,Depends,Query
-from models import Posts,Users,Friendship,Like,Comment,Tags
+from models import Posts,Users,Friendship,Like,Comment,Tags,Notifcation
 from schema import PostCreate,Post,CommentCreate,CommentResponse
 from database import SessionLocal
 from authentication import verifytoken,getcurrentuser
@@ -11,7 +11,7 @@ router=APIRouter(prefix="/posts",tags=["posts"])
 
 def post_response(post):
     return{"id":post.id,"title":post.title,"description":post.description,"category":post.category,"status":post.status,
-           "image":post.image,"created_at":post.created_at,"username":post.owner.name if post.owner else None,"owner_id":post.owner_id,"tagged_users":[tag.user.name for tag in post.tagged_friends]}
+           "image":post.image,"created_at":post.created_at,"username":post.owner.name if post.owner else None,"owner_id":post.owner_id,"tagged_users":[{"id":tag.user.id,"name":tag.user.name} for tag in post.tagged_friends]}
 
 def get_db():
     db=SessionLocal()
@@ -64,12 +64,15 @@ def makepost(post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = D
     image=strip_data_uri(post.image),
     owner_id=currentuser.id)
     db.add(newpost)
+    db.commit()
     db.refresh(newpost)
     for friend_id in post.tagged_users:
         friend=db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id==friend_id).first()
         if friend:
             db.add(Tags(post_id=newpost.id,user_id=friend_id))
+            db.add(Notifcation(user_id=friend_id,post_id=newpost.id,message=f"{currentuser.name} tagged you in a post with title-{post.title}"))
     db.commit()
+    db.refresh(newpost)
     return post_response(newpost)
 
     
@@ -83,6 +86,11 @@ def listposts(search:Optional[str]=Query(None),db:Session =Depends(get_db),skip:
         query=query.filter(Posts.title.ilike(f"%{search}%"))
     posts=query.offset(skip).limit(limit).all()
     return [post_response(post) for post in posts]
+
+@router.get("/friends")
+def getfriends(currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
+    friends=(db.query(Users).join(Friendship,Friendship.friend_id==Users.id).filter(Friendship.user_id==currentuser.id).all())
+    return[{"id":fr.id,"name":fr.name} for fr in friends]
 
 @router.get("/{post_id}",response_model=Post)
 def getposts(post_id:int,db: Session = Depends(get_db),currentuser=Depends(getuserwtoken)):
@@ -111,6 +119,12 @@ def editpost(post_id:int,post:PostCreate,currentuser=Depends(getcurrentuser),db:
             if oldstatus!="published" and dbpost.status=="published":
                 dbpost.published_at=datetime.utcnow()
             dbpost.image=strip_data_uri(post.image)
+            db.query(Tags).filter(Tags.post_id==dbpost.id).delete()
+            for friend_id in post.tagged_users:
+                friend=db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id==friend_id).first()
+                if friend:
+                    db.add(Tags(post_id=dbpost.id,user_id=friend_id))
+                    db.add(Notifcation(user_id=friend_id,message=f"{currentuser.name} tagged you in a post with title-{post.title}"))
             db.commit()
             db.refresh(dbpost)
             return post_response(dbpost)
@@ -162,7 +176,9 @@ async def addcomment(comment:CommentCreate,post_id:int,currentuser=Depends(getcu
     db.commit()
     db.refresh(comment)
     if post.owner_id!=currentuser.id:
+        db.add(Notifcation(user_id=post.owner_id,message=f"{currentuser.name} commented on your post"))
         await sendemail(post.owner.email,f"{currentuser.name} commented on your post '{post.title}'.","comment")
+        db.commit()
     return{"id":comment.id,"content":comment.content,"user_id":comment.user_id}
 
 @router.get("/{post_id}/comments")

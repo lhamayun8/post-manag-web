@@ -5,6 +5,7 @@ import api from "../../services/api";
 export default function EditPost({id,setTab}) {
   const [err, setError] = useState("");
   const[message,setMessage]=useState("")
+  const[friends,setFriends]=useState([])
       const closeerror=()=>{
     setError("")
     }
@@ -17,6 +18,7 @@ export default function EditPost({id,setTab}) {
     category: "",
     status: "draft",
     image: "",
+    tagged_users:[]
   });
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +34,7 @@ export default function EditPost({id,setTab}) {
          setTab("myposts")
       },1000)
     } catch (err) {
-      setError("can not update post.try again later");
+      setError("Can not update post.Try again later");
       console.error(err);
     }
   };
@@ -58,6 +60,15 @@ export default function EditPost({id,setTab}) {
     }
   };
   useEffect(() => {
+    const fecthfriends=async()=>{
+      try{
+        const set=await api.get("/posts/friends")
+        setFriends(set.data)
+      }catch(err){
+        setError("Failed to fetch tagged users")
+      }
+    }
+    fecthfriends()
     const fetchpost = async () => {
       try {
         const set = await api.get(`/posts/${id}`);
@@ -67,6 +78,7 @@ export default function EditPost({id,setTab}) {
           category: set.data.category,
           status: set.data.status,
           image: set.data.image || "",
+          tagged_users:set.data.tagged_users.map(tag=>tag.id)
         });
       } catch (error) {
         setError("failed to load post");
@@ -107,6 +119,12 @@ export default function EditPost({id,setTab}) {
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
+          <label>Tag Friends</label>
+          <select multiple value={data.tagged_users} onChange={(e)=>setData({...data,tagged_users:[...e.target.selectedOptions].map(option=>Number(option.value))})}
+          >{friends.map(friend=>(
+          <option key={friend.id} value={friend.id}>
+            {friend.name}</option>
+          ))}</select>
           {data.image && (
             <div className="image-preview">
               <p>New Image</p>

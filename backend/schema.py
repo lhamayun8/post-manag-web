@@ -55,6 +55,7 @@ class Post(BaseModel):
     image:Optional[str]=None
     created_at:datetime
     username:str
+    tagged_users:list[Taggeduser]=[]
     class Config:
         from_attributes=True
         
@@ -74,3 +75,7 @@ class Like(BaseModel):
     post_id:int
     class Config:
         from_attributes=True
+
+class Taggeduser(BaseModel):
+    id:int
+    name:str

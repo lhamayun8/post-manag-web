@@ -20,6 +20,9 @@ import ResetPassword from "./components/Auth/ResetPassword";
 import VerifyNewPass from "./components/Auth/VerifyNewPass";
 import Friends from "./Pages/Friends";
 import Posts from "./Pages/Posts";
+import Notifications from "./components/Notifications";
+import { useState } from "react";
+
 
 const publicroutes = [
   { path: "/", element: <Home></Home> },
@@ -38,6 +41,7 @@ const privateroutes = [
   { path: "/posts/edit/:id", element: <EditPost></EditPost> },
   { path: "/profile", element: <Profile></Profile> },
   {path:"/profile/:id",element:<Profile></Profile>},
+  {path:"/users/notifications",element:<Notifications></Notifications>},
   { path: "/profile/edit", element: <EditProfile></EditProfile> },
   { path: "/profile/changepass", element: <EditPassword></EditPassword> },
   { path: "/dashboard", element: <Dashboard></Dashboard> },
@@ -46,8 +50,10 @@ const privateroutes = [
 const adminroute = [
   { path: "/admin/dashboard", element: <Dashboard></Dashboard> },
 ];
+
 function AppContent() {
   const { user } = useAuth();
+
   return (
     <>
       <nav className="navbar">
@@ -61,6 +67,7 @@ function AppContent() {
             <>
               <Link to="/friends">Friends</Link>
               <Link to="/profile">Profile</Link>
+              <Notifications/>
               {user?.role === "admin" && (
                 <Link to="/admin/dashboard">Admin Dashboard</Link>
               )}

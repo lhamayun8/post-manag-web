@@ -1,5 +1,5 @@
 from fastapi import APIRouter,HTTPException,Header,Depends,Query
-from models import Users,Posts,FriendRequests,Friendship
+from models import Users,Posts,FriendRequests,Friendship,Notifcation
 from database import SessionLocal
 from sqlalchemy.orm import Session
 from schema import UserCreate,User,UserLogin,UserEdit,ChangePass,VerifyCode,ForgetPassword,ResetPassword
@@ -161,3 +161,17 @@ def editpassword(data:ChangePass,currentuser=Depends(getcurrentuser),db:Session=
             return{"message":"Password is changed"}
         else:
             raise HTTPException(status_code=400,detail="Current password is not correct. ")
+        
+@router.get("/notifications")
+def notifications(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+    notif=db.query(Notifcation).filter(Notifcation.user_id==currentuser.id).order_by(Notifcation.created_at.desc()).all()
+    return notif
+
+@router.put("/notifications/{id}/read")
+def mynotifications(id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+    notif=db.query(Notifcation).filter(Notifcation.id==id,Notifcation.user_id==currentuser.id).first()
+    if not notif:
+        raise HTTPException(status_code=404,detail="No notification found")
+    notif.is_read=True
+    db.commit()
+    return{"message":"Your notifications"}

@@ -14,6 +14,7 @@ export default function PostList() {
   const[showcomment,setshowcoomment]=useState({})
   const[likeusers,setlikeusers]=useState({})
   const[showlikeusers,setshowlikeusers]=useState({})
+
   const navigate=useNavigate()
 
   const closeerror=()=>{
@@ -150,6 +151,8 @@ export default function PostList() {
           </div>
         )}
                 <p>Posted by <b>{post.username}</b></p>
+                {post.tagged_users?.length>0 &&(<p><b>Tagged:</b>{""}
+                {post.tagged_users.map(tag=>tag.name).join(",")}</p>)}
                 <p>Published:{formatDate(post.published_at||post.created_at)}</p>
                 <p>Category:{post.category}</p>
                 <div className="likes-section">

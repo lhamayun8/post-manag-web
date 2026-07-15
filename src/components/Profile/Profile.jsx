@@ -40,7 +40,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not like post.");
+      setError(err.response?.data?.detail || "Can not like post.");
     }
   }
   const unlikepost=async(postid)=>{
@@ -52,7 +52,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not unlike post.");
+      setError(err.response?.data?.detail || "Can not unlike post.");
     }
   }
   const getcomments=async(postid)=>{
@@ -64,7 +64,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not get comments.");
+      setError(err.response?.data?.detail || "Can not get comments.");
     }
   }
   const addcomment=async(postid)=>{
@@ -79,7 +79,7 @@ export default function Profile() {
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not add comment.");
+      setError(err.response?.data?.detail || "Can not add comment.");
     }
   }
   const deletecomment=async(postid,commentid)=>{
@@ -87,11 +87,11 @@ export default function Profile() {
       await api.delete(`/posts/${postid}/comments/${commentid}`)
       getcomments(postid)
     }catch(err){
-      if(err.response?.status===401){
+      if(error.response?.status===401){
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not delete comment.");
+      setError(err.response?.data?.detail || "Can not delete comment.");
     }
   }
   const togglecomments=(postid)=>{
@@ -129,7 +129,7 @@ export default function Profile() {
           posts.data.forEach(post=>{alllikes(post.id);getcomments(post.id)})
         }
       } catch (err) {
-        setError(error.response?.data?.detail ||"failed to load profile");
+        setError(err.response?.data?.detail ||"failed to load profile");
       }
     };
     fetchProfile();

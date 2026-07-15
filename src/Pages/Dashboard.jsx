@@ -19,7 +19,7 @@ export default function Dashboard() {
       const pset = await api.get("/admin/posts");
       setPosts(pset.data); 
     }catch(err){
-      setError(error.response?.data?.detail ||"Failed to load admin data");
+      setError(err.response?.data?.detail ||"Failed to load admin data");
     }
   }
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function Dashboard() {
       await api.put(`/admin/makeadmin/${id}`)
       fetchdata()
     }catch(err){
-      setError(error.response?.data?.detail ||"Failed to promote user");
+      setError(err.response?.data?.detail ||"Failed to promote user");
     }
   }
   const blockuser=async(id)=>{
@@ -41,7 +41,7 @@ export default function Dashboard() {
       await api.put(`/admin/block/${id}`)
       fetchdata()
     }catch(err){
-      setError(error.response?.data?.detail ||"Failed to block");
+      setError(err.response?.data?.detail ||"Failed to block");
     }
   }
   const activateuser=async(id)=>{
@@ -49,7 +49,7 @@ export default function Dashboard() {
       await api.put(`/admin/activate/${id}`)
       fetchdata()
     }catch(err){
-      setError(error.response?.data?.detail ||"Failed to activate user");
+      setError(err.response?.data?.detail ||"Failed to activate user");
     }
   }
   const deletepost=async(id)=>{
@@ -59,7 +59,7 @@ export default function Dashboard() {
       await api.delete(`/admin/posts/${id}`)
       fetchdata()
     }catch(err){
-      setError(error.response?.data?.detail ||"Failed to delete post");
+      setError(err.response?.data?.detail ||"Failed to delete post");
     }
   }
   if (!user || user.role !== "admin") {

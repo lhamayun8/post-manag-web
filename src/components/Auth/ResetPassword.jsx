@@ -27,8 +27,12 @@ export default function ResetPassword() {
                 navigate("/login");
             },500)
         }catch(err){
-             setError(error.response?.data?.detail || "Password can not be changed")
+          if(err.response?.status===422){
+        setError("Please enter a valid password of at least 8 characters.")
+          }else{
+             setError(err.response?.data?.detail || "Password can not be changed")
         }
+      }
     }
   return (
     <div className='auth-container'>

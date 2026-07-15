@@ -19,7 +19,7 @@ class ForgetPassword(BaseModel):
 class ResetPassword(BaseModel):
     email:EmailStr
     code:str
-    new_password:str
+    new_password:str=Field(...,min_length=8)
 
 class VerifyCode(BaseModel):
     email:EmailStr
@@ -38,7 +38,7 @@ class ChangePass(BaseModel):
     old:str=Field(...,min_length=8)
     new:str=Field(...,min_length=8)
 class PostCreate(BaseModel):
-    title:str
+    title:str=Field(...,min_length=1)
     description:str
     category:str
     status:str="draft"

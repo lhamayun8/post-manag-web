@@ -70,7 +70,8 @@ def makepost(post:PostCreate,currentuser=Depends(getcurrentuser),db: Session = D
         friend=db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id==friend_id).first()
         if friend:
             db.add(Tags(post_id=newpost.id,user_id=friend_id))
-            db.add(Notifcation(user_id=friend_id,post_id=newpost.id,message=f"{currentuser.name} tagged you in a post with title-{post.title}"))
+            if newpost.status=="published":
+                db.add(Notifcation(user_id=friend_id,post_id=newpost.id,message=f"{currentuser.name} tagged you in a post with title-{post.title}"))
     db.commit()
     db.refresh(newpost)
     return post_response(newpost)
@@ -124,7 +125,8 @@ def editpost(post_id:int,post:PostCreate,currentuser=Depends(getcurrentuser),db:
                 friend=db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id==friend_id).first()
                 if friend:
                     db.add(Tags(post_id=dbpost.id,user_id=friend_id))
-                    db.add(Notifcation(user_id=friend_id,message=f"{currentuser.name} tagged you in a post with title-{post.title}"))
+                    if post.status=="published":
+                        db.add(Notifcation(user_id=friend_id,post_id=dbpost.id,message=f"{currentuser.name} tagged you in a post with title-{post.title}"))
             db.commit()
             db.refresh(dbpost)
             return post_response(dbpost)
@@ -176,7 +178,7 @@ async def addcomment(comment:CommentCreate,post_id:int,currentuser=Depends(getcu
     db.commit()
     db.refresh(comment)
     if post.owner_id!=currentuser.id:
-        db.add(Notifcation(user_id=post.owner_id,message=f"{currentuser.name} commented on your post"))
+        db.add(Notifcation(user_id=post.owner_id,post_id=post_id,message=f"{currentuser.name} commented on your post"))
         await sendemail(post.owner.email,f"{currentuser.name} commented on your post '{post.title}'.","comment")
         db.commit()
     return{"id":comment.id,"content":comment.content,"user_id":comment.user_id}

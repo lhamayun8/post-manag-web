@@ -13,6 +13,7 @@ export default function Notifications() {
     const loadnotif=async()=>{
         try {
             const set=await api.get("/users/notifications")
+            console.log(set.data)
             setNotifications(set.data)
         }
         catch(err) {
@@ -31,6 +32,8 @@ export default function Notifications() {
             if(notif.post_id){
                 setShow(false)
                 navigate(`/posts/${notif.post_id}`)
+            }else if(notif.message.includes("friend request")){
+                navigate("/friends")
             }
         }
         catch(err){

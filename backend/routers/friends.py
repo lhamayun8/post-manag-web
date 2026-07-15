@@ -1,7 +1,7 @@
 from fastapi import APIRouter,Depends,HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models import Users,FriendRequests,Friendship
+from models import Users,FriendRequests,Friendship,Notifcation
 from authentication import getcurrentuser
 from routers.sockets import notify_user
 router=APIRouter(prefix="/friends",tags=["friends"])
@@ -58,6 +58,7 @@ async def send_request(user_id:int,currentuser=Depends(getcurrentuser),db:Sessio
         raise HTTPException(status_code=400,detail="Request already sent")
     request=FriendRequests(sender_id=currentuser.id,receiver_id=user_id)
     db.add(request)
+    db.add(Notifcation(user_id=user_id,post_id=None,message=f"{currentuser.name} sent you a friend request"))
     db.commit()
     await notify_user(user_id,{"type":"friend_request","message":"You recieved a friend request"})
     return{"message":"Request sent"}
@@ -78,6 +79,7 @@ def acceptrequest(request_id:int,currentuser=Depends(getcurrentuser),db:Session=
      user1=Friendship(user_id=req.sender_id,friend_id=req.receiver_id)
      user2=Friendship(user_id=req.receiver_id,friend_id=req.sender_id)
      db.add_all([user1,user2])
+     db.add(Notifcation(user_id=req.sender_id,post_id=None,message=f"{currentuser.name} accepted your friend request"))
      db.commit()
      return{"message":"you are now friends"}
 

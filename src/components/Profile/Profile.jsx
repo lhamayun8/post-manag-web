@@ -179,9 +179,8 @@ export default function Profile() {
                       <img src={`data:image/jpeg;base64,${post.image}`} alt="post"></img>
                     </div>
                     )}
-                    <p>Posted by <b>{post.username}</b></p>
                     <p>Published:{formatDate(post.published_at ||post.created_at)}</p>
-                    <p>Category:{post.category}</p>
+                    {post.category &&(<p>Category:{post.category}</p>)}
                     <div className="likes-section">
                       <p className="likes-count" onClick={()=>togglelikes(post.id)}>{likes[post.id]||0} Likes</p>
                       {showlikeusers[post.id] &&(

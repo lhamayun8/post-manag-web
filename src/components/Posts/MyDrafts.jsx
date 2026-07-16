@@ -60,10 +60,10 @@ export default function MyDrafts({setTab,setEditId}) {
                         </div>
                     )}
                     <div className='post-body'>
-                    <p>
+                    {post.category &&(<p>
                         Category:{post.category}
-                    </p>
-                    <p>Created at:{formatDate(post.created_at)}</p>
+                    </p>)}
+                    <p><strong>Created at:</strong>{formatDate(post.created_at)}</p>
                     <p>Status:<b>Draft</b></p>
                     <div className='post-actions'>
                         <button className='btn btn-primary' onClick={()=>{setEditId(post.id); setTab("edit")}}>Edit Draft</button>

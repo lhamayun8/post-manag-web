@@ -5,6 +5,7 @@ export default function MyPosts({setTab,setEditId}) {
     const[posts,setPosts]=useState([])
     const[error,setError]=useState("")
     const[message,setMessage]=useState("")
+    const[expandposts,setexpandedposts]=useState({})
               const closeerror=()=>{
     setError("")
     }
@@ -45,6 +46,9 @@ export default function MyPosts({setTab,setEditId}) {
          setError(err.response?.data?.detail ||"Failed to delete post");
       }
   };
+    const toggledescription=(postid)=>{
+    setexpandedposts((prev)=>({...prev,[postid]:!prev[postid]}))
+  }
   return (
     <div className='posts-section'>
       <h2>My Posts</h2>
@@ -62,7 +66,13 @@ export default function MyPosts({setTab,setEditId}) {
                         </div>
                     )}
                     <div className='post-body'>
-                        <p>Category:{post.category}</p>
+                    {post.category &&(<p><strong>Category:</strong>{post.category}</p>)}
+                    {post.description &&(<p><strong>Description:</strong>{""}{expandposts[post.id]||post.description.length<=150?post.description:`${post.description.slice(0,150)}...`}{post.description.length>150 &&(
+                  <>
+                  {" "}
+                  <button type="button" className="see-more-btn" onClick={()=>toggledescription(post.id)}>{expandposts[post.id]?"see less":"see more"}</button></>
+                )}</p>
+              )}
                         <p>Status:<b>{post.status}</b></p>
                         <p className='post-data'>{post.status==="published"?`Published: ${formatDate(post.published_at)}`
                         :`Created at: ${formatDate(post.created_at)}`}</p>

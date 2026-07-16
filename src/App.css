@@ -1188,7 +1188,20 @@ tr:hover {
   margin-top: 1.5rem;
   flex-wrap: wrap;
 }
+.see-more-btn {
+    background: none;
+    border: none;
+    color: darkgrey;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 6px;
+    font-size: 0.95rem;
+}
 
+.see-more-btn:hover {
+    text-decoration: underline;
+}
 .profile-actions .btn {
   flex: 1;
   min-width: 120px;

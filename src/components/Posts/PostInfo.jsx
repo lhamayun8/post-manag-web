@@ -138,8 +138,8 @@ export default function PostInfo() {
             <img src={`data:image/jpeg;base64,${post.image}`} alt="post"></img>
           </div>
         )}
-        <p>Category is {post.category}</p>
-        <p>Status is {post.status}</p>
+        {post.category &&(<p>Category is {post.category}</p>)}
+        <p><strong>Status:</strong>{post.status}</p>
         <div className="likes-section">
             <p className="likes-count" onClick={togglelikes}>{likes} Likes</p>
             {showlikeusers && (<div className="likes-popup">

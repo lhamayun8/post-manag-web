@@ -14,6 +14,7 @@ export default function PostList() {
   const[showcomment,setshowcoomment]=useState({})
   const[likeusers,setlikeusers]=useState({})
   const[showlikeusers,setshowlikeusers]=useState({})
+  const[expandposts,setexpandedposts]=useState({})
 
   const navigate=useNavigate()
 
@@ -113,6 +114,9 @@ export default function PostList() {
       getcomments(postid)
     }
   }
+  const toggledescription=(postid)=>{
+    setexpandedposts((prev)=>({...prev,[postid]:!prev[postid]}))
+  }
     const formatDate=(date)=>{
     return new Date(date+"Z").toLocaleString("en-PK",{
       timeZone:"Asia/Karachi",dateStyle:"medium",timeStyle:"short"
@@ -153,8 +157,14 @@ export default function PostList() {
                 <p>Posted by <b>{post.username}</b></p>
                 {post.tagged_users?.length>0 &&(<p><b>Tagged:</b>{""}
                 {post.tagged_users.map(tag=>tag.name).join(",")}</p>)}
-                <p>Published:{formatDate(post.published_at||post.created_at)}</p>
-                <p>Category:{post.category}</p>
+                <p><strong>Published:</strong>{formatDate(post.published_at||post.created_at)}</p>
+                {post.category &&(<p><strong>Category:</strong>{post.category}</p>)}
+                {post.description &&(<p><strong>Description:</strong>{""}{expandposts[post.id]||post.description.length<=150?post.description:`${post.description.slice(0,150)}...`}{post.description.length>150 &&(
+                  <>
+                  {" "}
+                  <button type="button" className="see-more-btn" onClick={()=>toggledescription(post.id)}>{expandposts[post.id]?"see less":"see more"}</button></>
+                )}</p>
+              )}
                 <div className="likes-section">
                   <p className="likes-count" onClick={()=>togglelikes(post.id)}>{likes[post.id]||0} Likes</p>
                   {showlikeusers[post.id]&&(

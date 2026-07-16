@@ -1,5 +1,5 @@
 import "./App.css";
-import { Link, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Link, Route, BrowserRouter as Router, Routes,useLocation } from "react-router-dom";
 import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
 import Logout from "./components/Auth/Logout";
@@ -53,7 +53,8 @@ const adminroute = [
 
 function AppContent() {
   const { user } = useAuth();
-
+  const location=useLocation()
+  const hideusernavbar=publicroutes.includes(location.pathname)
   return (
     <>
       <nav className="navbar">

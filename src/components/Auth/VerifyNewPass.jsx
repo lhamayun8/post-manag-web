@@ -8,7 +8,7 @@ export default function VerifyNewPass() {
     const navigate=useNavigate()
     const[code,setCode]=useState("")
     const[error,setError]=useState("")
-    const email=location.state?.email||""
+    const email=(location.state?.email||"").trim().toLowerCase()
     const closeerror=()=>{
     setError("")
     }
@@ -26,7 +26,7 @@ export default function VerifyNewPass() {
                 navigate("/reset-password",{state:{email,code}});
             },1500)
         }catch(err){
-             setError(error.response?.data?.detail || "Invalid verification code")
+             setError(err.response?.data?.detail || "Invalid verification code")
         }
     }
     const handleResend=async(e)=>{

@@ -8,10 +8,11 @@ export default function Home() {
   const { user } = useAuth();
   return (
     <div className="home-container">
-      <h1>Welcome to Post Management system</h1>
+      <section className="hero-section">
+        <h1>Welcome to Post Management system</h1>
+        <p className="hero-description">Create and manage posts,connect with friends and interact with your community in one place.LETS START TODAY!!</p>
       {!user ? (
         <div>
-          <p>Login or register</p>
           <div className="home-buttons">
             <Link to="/login" className="btn btn-primary">
               LOGIN
@@ -23,7 +24,7 @@ export default function Home() {
         </div>
       ) : (
         <div>
-          <p>WELCOME,{user.name}</p>
+          <p className="welcome-user">WELCOME,{user.name}</p>
           <div className="home-buttons">
             <Link to="/posts" className="btn btn-primary">
               View Posts
@@ -42,6 +43,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      </section>
     </div>
   );
 }

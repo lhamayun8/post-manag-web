@@ -19,8 +19,15 @@ export default function MakePost({setTab}) {
   const [error, setError] = useState("");
   const[message,setMessage]=useState("")
   useEffect(()=>{
-    api.get("/posts/friends").then
-    (set=>setFriends(set.data))
+    const fecthfriends=async()=>{
+      try{
+        const set=await api.get("/posts/friends")
+        setFriends(set.data)
+      }catch(err){
+        setError(err.response?.data?.detail ||"Failed to load your friends")
+      }
+    }
+    fecthfriends()
   },[])
   const handleChange = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
@@ -28,10 +35,6 @@ export default function MakePost({setTab}) {
   const handleimagechange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 500 * 1024) {
-        setError("image size exceed. it must be less than 500Kb");
-        return;
-      }
       const read = new FileReader();
       read.onloadend = () => {
         setData({ ...data, image: read.result });
@@ -54,8 +57,12 @@ export default function MakePost({setTab}) {
         setTab("myposts")
       },800)
     } catch (err) {
-      setError(error.response?.data?.detail ||"Failed to create new post.Try again");
+      if(err.response?.status===422){
+        setError("Post can not be made or updated without a post title")
+      }else{
+      setError(err.response?.data?.detail ||"Failed to create new post.Try again");
     }
+  }
   };
   return (
     <div className="auth-container create-post-form">

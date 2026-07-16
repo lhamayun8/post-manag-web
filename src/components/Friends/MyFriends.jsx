@@ -24,7 +24,7 @@ export default function MyFriends() {
             await api.delete(`/friends/${id}`)
             setFriends((prev)=>prev.filter((friend)=>friend.id!==id))
         }catch(err){
-             setError(error.response?.data?.detail ||"failed to remove friend");
+             setError(error.response?.data?.detail ||"Failed to remove friend");
         }
     }
   return (
@@ -36,7 +36,7 @@ export default function MyFriends() {
             <div className='user-card' key={friend.id}>
                 <div className='user-info'>
                     <div className='user-avatar'>
-                        {friend.name.charAt(0).toUpperCase()}
+                        {friend.name?.charAt(0).toUpperCase()}
                     </div>
                     <div className='user-details'>
                         <h4>{friend.name}</h4>

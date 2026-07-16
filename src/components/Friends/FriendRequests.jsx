@@ -25,7 +25,10 @@ export default function FriendRequests() {
         try{
             await api.put(`/friends/accept/${id}`)
             setMessage("Friend request accepted!!")
-            getRequests()
+            await getRequests()
+        setTimeout(()=>{
+            setMessage("")
+        },1000)
         }catch(err){
             setError(error.response?.data?.detail ||"failed to accept request");
         }

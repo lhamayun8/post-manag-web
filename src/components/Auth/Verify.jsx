@@ -5,7 +5,7 @@ import api from "../../services/api";
 export default function Verify() {
     const location=useLocation()
     const navigate=useNavigate()
-    const email=location.state?.email||""
+    const email=(location.state?.email||"").toLowerCase()
     const[code,setCode]=useState("")
     const[error,setError]=useState("")
     const[message,setMessage]=useState("")
@@ -20,13 +20,13 @@ export default function Verify() {
         setError("")
         setMessage("")
         try{
-            const set=await api.post("/users/verify",{email,code})
+            const set=await api.post("/users/verify",{email:email.trim().toLowerCase(),code})
             setMessage("Email verified successsfully!!")
             setTimeout(()=>{
                 navigate("/login")
             },1000)
         }catch(err){
-            setError(error.response?.data?.detail||"Verification failed")
+            setError(err.response?.data?.detail||"Verification failed")
         }
     }
     const handleResend=async(e)=>{
@@ -36,7 +36,7 @@ export default function Verify() {
             await api.post("/users/resend-verification",null,{params:{email}})
             setMessage("New verification code is sent to your email")
         }catch(err){
-            setError(error.response?.data?.detail || "could not send new code")
+            setError(err.response?.data?.detail || "could not send new code")
         }
 
     }

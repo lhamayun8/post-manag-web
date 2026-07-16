@@ -7,7 +7,7 @@ export default function PostInfo() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
-  const [error, setError] = useState("");
+  const [err, setError] = useState("");
   const { user } = useAuth();
   const[message,setMessage]=useState("")
   const[comments,setComments]=useState([])
@@ -15,7 +15,7 @@ export default function PostInfo() {
   const [likeusers,setLikeusers]=useState([]);
   const [liked,setLiked]=useState(false);
   const [newcomment,setNewcomment]=useState("");
-  const[showlikeusers,setshowlikeusers]=useState({})
+  const[showlikeusers,setshowlikeusers]=useState(false)
   const closeerror=()=>{
     setError("")
   }
@@ -33,11 +33,11 @@ export default function PostInfo() {
         const likeset=await api.get(`/posts/${id}/likes`)
         setLikes(likeset.data.Likes)
         setLikeusers(likeset.data.users)
-        if(user){setLiked(likeset.data.users.some(person=>person.id===user.id)
-        )
+        if(user){
+          setLiked(likeset.data.users.some(person=>person.id===user.id))
       }
       } catch (err) {
-        setError(error.response?.data?.detail || "failed to load posts");
+        setError(err.response?.data?.detail || "Failed to load posts");
       }
     };
     fetchPost();
@@ -54,7 +54,7 @@ export default function PostInfo() {
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not like post.");
+      setError(err.response?.data?.detail || "Can not like post.");
     }
   }
   const togglelikes=()=>{
@@ -72,11 +72,11 @@ export default function PostInfo() {
       setLikes(set.data.Likes)
       setLikeusers(set.data.users)
     }catch(err){
-      if(error.response?.status===401){
+      if(err.response?.status===401){
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not unlike post.");
+      setError(err.response?.data?.detail || "Can not unlike post.");
     }
   }
   const addcomment=async()=>{
@@ -88,11 +88,11 @@ export default function PostInfo() {
       setComments(set.data)
       setNewcomment("")
     }catch(err){
-      if(error.response?.status===401){
+      if(err.response?.status===401){
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not add comment.");
+      setError(err.response?.data?.detail || "Can not add comment.");
     }
   }
   const deletecomment=async(commentid)=>{
@@ -100,26 +100,30 @@ export default function PostInfo() {
       await api.delete(`/posts/${id}/comments/${commentid}`)
       setComments(comments.filter(c=>c.id!==commentid))
     }catch(err){
-      if(error.response?.status===401){
+      if(err.response?.status===401){
         navigate("/login")
         return;
       }
-      setError(error.response?.data?.detail || "Can not delete comment.");
+      setError(err.response?.data?.detail || "Can not delete comment.");
     }
   }
-    const formatDate=(date)=>{
+  const deletePost = async () => {
+    try{
+      await api.delete(`/posts/${id}`);
+      setMessage("Post is deleted successfully!!")
+      setTimeout(()=>{
+          navigate("/posts");
+        },800)
+      }catch(err){
+        setError(err.response?.data?.detail ||"Failed to delete post")
+      }
+  };
+      const formatDate=(date)=>{
     return new Date(date+"Z").toLocaleString("en-PK",{
       timeZone:"Asia/Karachi",dateStyle:"medium",timeStyle:"short"
     })
   }
-  const deletePost = async () => {
-    await api.delete(`/posts/${id}`);
-    setMessage("Post is deleted successfully!!")
-    setTimeout(()=>{
-        navigate("/posts");
-      },800)
-  };
-  if (error) return <div>{error}</div>;
+  if (err) return <div>{err}</div>;
   if (!post) return <div>Loading.</div>;
   const edit = user && (user.id === post.owner_id || user.role === "admin");
   return (
@@ -144,7 +148,7 @@ export default function PostInfo() {
             <p>No likes yet</p>:
             likeusers.map(person=>(
               <div className="likes-user" key={person.id}>
-            <div className="avatar-small">{person.username.charAt(0).toUpperCase()}</div>
+            <div className="avatar-small">{person.username?.charAt(0).toUpperCase()}</div>
             <span>{person.username}</span>
             </div>
             ))}
@@ -157,10 +161,18 @@ export default function PostInfo() {
               {comments.length===0 ?<p>No comments yet</p>:
               comments.map(comment=>(
               <div className="comment-card" key={comment.id}>
+                 <div className="comment-avatar">
+                  {comment.username?.charAt(0).toUpperCase()}
+                  </div>
+              <div className="comment-body">
+                <div className="comment-header">
               <strong>{comment.username}</strong>
+              <span>{formatDate(comment.created_at)}</span>
+              </div>
               <p>{comment.content}</p>{
               user && (user.id===comment.user_id || user.role==="admin")&&
-              <button onClick={()=>deletecomment(comment.id)}>Delete</button>}
+              <button className="comment-delete" onClick={()=>deletecomment(comment.id)}>Delete Comment</button>}
+            </div>
             </div>
             ))
           }
@@ -180,9 +192,9 @@ export default function PostInfo() {
         <button onClick={closemessage}>X</button>
         </div>
         )}
-         {error && (
+         {err && (
         <div className="error-box">
-        <span>{error}</span>
+        <span>{err}</span>
         <button onClick={closeerror}>X</button>
         </div>
         )}  

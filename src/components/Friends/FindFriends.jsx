@@ -34,7 +34,7 @@ export default function FindFriends() {
             setError(error.response?.data?.detail ||"Unable to send request");
         }
     }
-    const list=users.filter((user)=>user.name.toLowerCase().includes(search.toLowerCase()))
+    const list=users.filter((user)=>user.name?.toLowerCase().includes(search.toLowerCase()))
   return (
     <div className='friends-section'>
         <h2>Find Friends</h2>

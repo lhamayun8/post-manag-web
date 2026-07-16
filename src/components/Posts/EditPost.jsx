@@ -34,17 +34,17 @@ export default function EditPost({id,setTab}) {
          setTab("myposts")
       },1000)
     } catch (err) {
-      setError("Can not update post.Try again later");
+      if(err.response?.status===422){
+        setError("Post can not be made or updated without a post title")
+      }else{
+      setError(err.response?.data?.detail ||"Failed to load your posts")
       console.error(err);
     }
+  }
   };
   const handleimagechange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 500 * 1024) {
-        setError("Image size exceed. It must be less than 500Kb");
-        return;
-      }
       const read = new FileReader();
       read.onloadend = () => {
         setData({ ...data, image: read.result });
@@ -65,7 +65,7 @@ export default function EditPost({id,setTab}) {
         const set=await api.get("/posts/friends")
         setFriends(set.data)
       }catch(err){
-        setError("Failed to fetch tagged users")
+        setError(err.response?.data?.detail ||"Failed to fetch tagged users")
       }
     }
     fecthfriends()
@@ -78,11 +78,11 @@ export default function EditPost({id,setTab}) {
           category: set.data.category,
           status: set.data.status,
           image: set.data.image || "",
-          tagged_users:set.data.tagged_users.map(tag=>tag.id)
+          tagged_users:set.data?set.data.tagged_users.map(tag=>tag.id):[]
         });
-      } catch (error) {
-        setError("failed to load post");
-      }
+      } catch (err) {
+        setError(err.response?.data?.detail ||"Failed to load post")
+    }
     };
     fetchpost();
   }, [id]);

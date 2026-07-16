@@ -44,11 +44,16 @@ async def registeruser(user:UserCreate,db:Session=Depends(get_db)):
         db.close()
         raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
     code=str(random.randint(100000,999999))
-    newuser=Users(name=user.name,email=user.email,password=hashpass(user.password),role="user",verfcode=code,is_verified=False)
+    newuser=Users(name=user.name,email=user.email,password=hashpass(user.password),role="user",verfcode=code,is_verified=False,verfcode_expiry=datetime.utcnow()+timedelta(minutes=15))
     db.add(newuser)
     db.commit()
     db.refresh(newuser)
-    await sendemail(newuser.email,code,"verify")
+    try:
+        await sendemail(newuser.email,code,"verify")
+    except Exception:
+        db.delete(newuser)
+        db.commit()
+        raise HTTPException(status_code=500,detail="Failed to send verification email")
     db.close()
     return newuser
 
@@ -58,6 +63,9 @@ def reset_password_code(data:VerifyCode,db:Session=Depends(get_db)):
     if user.resetcode!=data.code:
         db.close()
         raise HTTPException(status_code=400,detail="invalid reset code.Try again!!")
+    if user.resetcode_expiry is None or datetime.utcnow()>user.resetcode_expiry:
+        db.close()
+        raise HTTPException(status_code=400,detail='Reset code is expired')
     db.close() 
     return{"message":"code verified"}
 
@@ -96,6 +104,9 @@ def verifyemail(data:VerifyCode,db:Session=Depends(get_db)):
     if user.verfcode!=data.code:
         db.close()
         raise HTTPException(status_code=400,detail="Invalid verification code")
+    if user.verfcode_expiry is None or datetime.utcnow()>user.verfcode_expiry:
+        db.close()
+        raise HTTPException(status_code=400,detail="Verification code is expired")
     user.is_verified=True
     user.verfcode=None
     db.commit()
@@ -119,6 +130,7 @@ async def resend_verification(email:str=Query(...),db:Session=Depends(get_db)):
 
 @router.post("/login")
 def login(user:UserLogin,db:Session=Depends(get_db)):
+    user.email=user.email.strip().lower()
     dbuser=db.query(Users).filter_by(email=user.email).first()
     if dbuser and verifypass(user.password,dbuser.password):
         if not dbuser.is_active:
@@ -155,12 +167,13 @@ def editprofile(data:UserEdit,currentuser=Depends(getcurrentuser),db:Session=Dep
 @router.put("/changepass")
 def editpassword(data:ChangePass,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
         user=get_user(currentuser.id,db)
-        if verifypass(data.old,user.password):
-            user.password=hashpass(data.new)
-            db.commit()
-            return{"message":"Password is changed"}
-        else:
-            raise HTTPException(status_code=400,detail="Current password is not correct. ")
+        if not verifypass(data.old,user.password):
+            raise HTTPException(status_code=400,detail="Current password is not correct")
+        if verifypass(data.new,user.password):
+            raise HTTPException(status_code=400,detail="New password must be different from the current password")
+        user.password=hashpass(data.new)
+        db.commit()
+        return{"message":"Password is changed"}
         
 @router.get("/notifications")
 def notifications(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):

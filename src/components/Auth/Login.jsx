@@ -12,7 +12,7 @@ export default function Login() {
     setError("")
     }
   const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
+    setData({ ...data, [e.target.name]: e.target.name==="email"?e.target.value.toLowerCase():e.target.value });
   };
   const handleSubmit = async (e) => {
     e.preventDefault();

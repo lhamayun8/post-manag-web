@@ -11,12 +11,13 @@ export default function Register() {
     } 
     const handleSubmit=async(e)=>{
         e.preventDefault();
+        const registerdata={...data,email:data.email.trim().toLowerCase(),name:data.name.trim()}
         try{
-            await api.post("/users/register",data)
-            navigate("/verify",{state:{email:data.email}})
+            await api.post("/users/register",registerdata)
+            navigate("/verify",{state:{email:registerdata.email}})
         }catch(error){
         if(error.response?.status===422){
-            setError("Please enter valid email or a password of at least 8 characters.")
+            setError("Please enter valid email or a password of at least 8 characters. You must enter a name.")
         }else{
             setError(error.response?.data?.detail || "Registration failed.");
         }

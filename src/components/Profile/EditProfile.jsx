@@ -41,8 +41,12 @@ export default function EditProfile({setTab}) {
         setTab("profile")
       },1000)
     } catch (err) {
+      if(err.response?.status===422){
+            setError("You must enter a name.")
+      }else{
       setError(err.response?.data?.detail ||"Can not update profile.");
     }
+  }
   };
 
   return (

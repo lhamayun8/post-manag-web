@@ -16,7 +16,7 @@ export default function MyPosts({setTab,setEditId}) {
             const set=await api.get("/posts/me")
             setPosts(set.data)
         }catch(err){
-            setError(error.response?.data?.detail ||"failed to load your posts")
+            setError(err.response?.data?.detail ||"Failed to load your posts")
         }
     }
     useEffect(()=>{
@@ -36,13 +36,13 @@ export default function MyPosts({setTab,setEditId}) {
       setMessage("Post is deleted successfully!!")
       getmyposts()
       setTimeout(()=>{
-          navigate("myposts");
+          setTab("myposts");
         },800)
         setTimeout(()=>{
             setMessage("")
         },1000)
       }catch(err){
-         setError(error.response?.data?.detail ||"Failed to delete post");
+         setError(err.response?.data?.detail ||"Failed to delete post");
       }
   };
   return (
@@ -64,7 +64,8 @@ export default function MyPosts({setTab,setEditId}) {
                     <div className='post-body'>
                         <p>Category:{post.category}</p>
                         <p>Status:<b>{post.status}</b></p>
-                        <p className='post-data'>{formatDate(post.created_at)}</p>
+                        <p className='post-data'>{post.status==="published"?`Published: ${formatDate(post.published_at)}`
+                        :`Created at: ${formatDate(post.created_at)}`}</p>
                         <div className='post-actions'>
                             <button className='btn btn-primary' onClick={()=>{
                                 setEditId(post.id);setTab("edit")

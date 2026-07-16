@@ -12,11 +12,12 @@ export default function ForgotPassword() {
     const handleSubmit=async(e)=>{
         e.preventDefault()
         setError("")
+        const loweremail=email.trim().toLowerCase()
         try{
             await api.post("/users/forgot-password",null,{params:{
-                email:email
+                email:loweremail
             }})
-            navigate("/verify-new-pass",{state:{email}})
+            navigate("/verify-new-pass",{state:{email:loweremail}})
         }catch(err){
             setError(err.response?.data?.detail || "Request for reset password failed")
         }

@@ -64,6 +64,8 @@ def blockuser(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db))
      user=get_user(user_id,db)
      if user.id==admin.id:
           raise HTTPException(status_code=400,detail="Admin cannot block himself")
+     if user.role=="admin":
+          raise HTTPException(status_code=400,detail="Cannot block another admin")
      user.is_active=False
      db.commit()
      return{"message":"User is blocked"}

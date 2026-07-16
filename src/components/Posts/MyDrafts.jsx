@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import api from '../../services/api'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 export default function MyDrafts({setTab,setEditId}) {
     const[drafts,setDrafts]=useState([])
     const[error,setError]=useState("")
+    const navigate=useNavigate()
     const[message,setMessage]=useState("")
           const closeerror=()=>{
     setError("")
@@ -16,7 +17,7 @@ export default function MyDrafts({setTab,setEditId}) {
             const set=await api.get("/posts/me/drafts")
             setDrafts(set.data)
         }catch(err){
-            setError(error.response?.data?.detail ||"failed to load drafts");
+            setError(err.response?.data?.detail ||"Failed to load drafts");
         }
     }
 
@@ -36,14 +37,11 @@ export default function MyDrafts({setTab,setEditId}) {
       await api.delete(`/posts/${id}`);
       setMessage("Post is deleted successfully!!")
       getdrafts()
-      setTimeout(()=>{
-          navigate("myposts");
-        },800)
         setTimeout(()=>{
             setMessage("")
         },1000)
       }catch(err){
-         setError(error.response?.data?.detail ||"Failed to delete post");
+         setError(err.response?.data?.detail ||"Failed to delete post");
       }
   };
   return (
@@ -65,8 +63,8 @@ export default function MyDrafts({setTab,setEditId}) {
                     <p>
                         Category:{post.category}
                     </p>
-                    <p>{formatDate(post.created_at)}</p>
-                    <p>status:<b>Draft</b></p>
+                    <p>Created at:{formatDate(post.created_at)}</p>
+                    <p>Status:<b>Draft</b></p>
                     <div className='post-actions'>
                         <button className='btn btn-primary' onClick={()=>{setEditId(post.id); setTab("edit")}}>Edit Draft</button>
                         <button type="button" className="btn btn-danger" onClick={()=>deletePost(post.id)}>Delete Draft</button>

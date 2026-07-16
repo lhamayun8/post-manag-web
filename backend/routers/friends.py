@@ -36,8 +36,8 @@ def users(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
             if request:
                 status="pending"
             else:
-                rec=db.query(FriendRequests).filter(FriendRequests.sender_id==currentuser.id,
-                                                    FriendRequests.receiver_id==u.id,
+                rec=db.query(FriendRequests).filter(FriendRequests.sender_id==u.id,
+                                                    FriendRequests.receiver_id==currentuser.id,
                                                     FriendRequests.status=="pending").first()
                 if rec:
                     status="received"
@@ -70,7 +70,7 @@ def requests(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
     return[{"id":request.id,"from":request.sender.name,"user_id":request.sender.id} for request in req]
 
 @router.put("/accept/{request_id}")
-def acceptrequest(request_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+async def acceptrequest(request_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
      req=db.query(FriendRequests).filter(FriendRequests.id==request_id,FriendRequests.receiver_id==currentuser.id).first()
      if not req:
          db.close()
@@ -81,6 +81,7 @@ def acceptrequest(request_id:int,currentuser=Depends(getcurrentuser),db:Session=
      db.add_all([user1,user2])
      db.add(Notifcation(user_id=req.sender_id,post_id=None,message=f"{currentuser.name} accepted your friend request"))
      db.commit()
+     await notify_user(req.sender_id,{"type":"friend_accept","message":f"{currentuser.name} accepted your request"})
      return{"message":"you are now friends"}
 
 @router.put("/reject/{request_id}")

@@ -52,10 +52,12 @@ const adminroute = [
 ];
 
 function AppContent() {
-  const { user } = useAuth();
-  const location=useLocation()
-  const hideusernavbar=publicroutes.includes(location.pathname)
+  const { user,loading } = useAuth();
+  if (loading) {
+  return <div>Loading...</div>;
+}
   return (
+    
     <>
       <nav className="navbar">
         <div className="navpost">

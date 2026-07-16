@@ -28,7 +28,7 @@ export default function Profile() {
       setLikes((prev)=>({...prev,[postid]:set.data.Likes}))
       setlikeusers((prev)=>({...prev,[postid]:set.data.users}))
     }catch(err){
-       setError(error.response?.data?.detail || "Can not load likes.");
+       setError(err.response?.data?.detail || "Can not load likes.");
     }
   }
   const likepost=async(postid)=>{
@@ -87,7 +87,7 @@ export default function Profile() {
       await api.delete(`/posts/${postid}/comments/${commentid}`)
       getcomments(postid)
     }catch(err){
-      if(error.response?.status===401){
+      if(err.response?.status===401){
         navigate("/login")
         return;
       }

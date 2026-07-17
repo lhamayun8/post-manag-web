@@ -53,7 +53,7 @@ def strip_data_uri(image:str):
 
 @router.get("/me/drafts")
 def mydrafts(currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
-    drafts=db.query(Posts).filter(Posts.owner_id==currentuser.id,Posts.status=="draft").all()
+    drafts=db.query(Posts).filter(Posts.owner_id==currentuser.id,Posts.status=="draft").order_by(Posts.created_at.desc()).all()
     return[{"id":p.id,"title":p.title,"category":p.category,"created_at":p.created_at,"image":p.image}
            for p in drafts]
 

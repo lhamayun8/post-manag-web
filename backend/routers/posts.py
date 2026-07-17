@@ -201,5 +201,5 @@ def deletecomment(post_id:int,comment_id:int,currentuser=Depends(getcurrentuser)
 
 @router.get("/user/{user_id}/posts")
 def userposts(user_id:int,db:Session=Depends(get_db)):
-    posts=db.query(Posts).filter(Posts.owner_id==user_id,Posts.status=="published").all()
+    posts=db.query(Posts).filter(Posts.owner_id==user_id,Posts.status=="published").order_by(Posts.created_at.desc()).all()
     return[post_response(post) for post in posts]

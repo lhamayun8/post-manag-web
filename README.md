@@ -78,11 +78,19 @@ INSTALLATION SETUP:
 Backend:
 git clone <github.com/lhamayun8/post-manag-web>
 cd backend
-pip install fastapi uvicorn sqlalchemy python-jose passlib bcrypt
+pip install fastapi uvicorn sqlalchemy python-jose passlib bcrypt pyhton-multipart
+#for PostgreSQL:
+pip install psycopg2-binary 
 uvicorn main:app --reload
 127.0.0.1/docs
 
 Frontend:
 npm install
-npm start
 npm run dev
+
+## Database Migration (Alembic)
+This project uses **Alembic** for managing database schema changes with SQLAlchemy. Alembic allows creating, tracking, and applying database migrations without manually modifying database tables.
+### Installation
+Install Alembic using pip:
+```bash
+pip install alembic

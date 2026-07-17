@@ -1,7 +1,9 @@
-fastapi, 
-uvicorn[standard],
-sqlalchemy, 
-python-jose[cryptography], 
-passlib[bcrypt], 
-bcrypt==4.0.1, 
+fastapi 
+uvicorn[standard]
+sqlalchemy
+python-jose[cryptography] 
+passlib[bcrypt]
+bcrypt==4.0.1
 python-dotenv
+alembic==1.12.1
+psycopg2-binary===2.9.9

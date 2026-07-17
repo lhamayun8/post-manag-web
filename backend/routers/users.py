@@ -188,3 +188,12 @@ def mynotifications(id:int,currentuser=Depends(getcurrentuser),db:Session=Depend
     notif.is_read=True
     db.commit()
     return{"message":"Your notifications"}
+
+@router.delete("/notifications/{id}")
+def deletenotification(id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+    notif=db.query(Notifcation).filter(Notifcation.id==id,Notifcation.user_id==currentuser.id).first()
+    if not notif:
+        raise HTTPException(status_code=404,detail="No notification found")
+    db.delete(notif)
+    db.commit()
+    return{"message":"Notification is deleted successfully"}

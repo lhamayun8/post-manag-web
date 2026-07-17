@@ -1096,7 +1096,45 @@ gap:20px;
   justify-content: center;
   align-items: center;
 }
+.notification-item{
+    padding:15px;
+    border-bottom:1px solid #eee;
 
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    cursor:pointer;
+}
+
+
+.notification-content{
+    flex:1;
+    padding-right:10px;
+}
+
+
+.delete-notification{
+
+    background:none;
+    border:none;
+
+    color:#dc2626;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+    padding:5px;
+
+    width:auto;
+}
+
+
+.delete-notification:hover{
+    transform:scale(1.2);
+    background:none;
+}
 .image-box img {
   width: 100%;
   height: 100%;
@@ -1266,28 +1304,53 @@ tr:hover {
 
 }
 
+/* Main dropdown */
+.notification-box {
+    position: absolute;
 
-.notification-box{
+    /* keep it attached to bell */
+    top: 50px;
+    right: 0;
 
-    position:absolute;
-    right:0;
-    top:40px;
+    width: 380px;
 
-    width:360px;
-    border-radius:12px;
+    max-height: 450px;
+    overflow-y: auto;
 
-    box-shadow:
-    0 4px 20px rgba(0,0,0,.15);
+    background: white;
 
-    overflow:hidden;
+    border-radius: 12px;
 
-    z-index:1000;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.18);
 
+    z-index: 9999;
+
+    animation: notificationSlide .2s ease;
+}
+
+
+/* scrollbar */
+.notification-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-box::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
 }
 
 
 
-.notification-item{
+/* each notification */
+.notification-item {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:15px;
 
     padding:15px;
 
@@ -1295,19 +1358,48 @@ tr:hover {
 
     cursor:pointer;
 
-    display:flex;
-    flex-direction:column;
-    color: #111827;
+    color:#111827;
 
+    background:white;
+
+    transition:.2s;
 }
 
 
-.notification-item:hover{
-
-    background:#fafafa;
-
+.notification-item:hover {
+    background:#f8fafc;
 }
 
+
+
+.notification-item.unread {
+    background:#eff6ff;
+}
+
+
+.notification-item.read {
+    background:white;
+}
+
+
+
+.notification-content {
+    flex:1;
+    min-width:0;
+}
+
+
+.notification-content p {
+
+    margin:0;
+
+    font-size:14px;
+
+    line-height:1.4;
+
+    word-wrap:break-word;
+
+}
 
 .notification-item.unread{
 

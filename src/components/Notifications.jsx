@@ -40,6 +40,15 @@ export default function Notifications() {
             setError(err.response?.data?.detail ||"Failed to mark notification as read")
         }
     }
+    const deleteNotif = async (id,e) => {
+        e.stopPropagation()
+        try{
+            await api.delete(`/users/notifications/${id}`);
+            setNotifications(prev=>prev.filter(n=>n.id!==id))
+        }catch(err ){
+            setError(err.response?.data?.detail ||"Failed to delete notification");
+        }
+    };
     const unread=notifications.filter(n=>!n.is_read).length;
     return (
         <div className="notification-container">
@@ -70,12 +79,15 @@ export default function Notifications() {
                                     : "notification-item unread"
                                 }
                             >
+                                <div className="notification-content">
                                 <p>
                                     {notif.message}
                                 </p>
                                 <small className="notification-time">
                                     {formatDate(notif.created_at)}
                                 </small>
+                                </div>
+                                <button title="Delete notification" className="delete-notification" onClick={(e)=>deleteNotif(notif.id,e)}>🗑️</button>
                             </div>
                         ))
                     )}

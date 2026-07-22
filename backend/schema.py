@@ -108,3 +108,19 @@ class Like(BaseModel):
 class Taggeduser(BaseModel):
     id:int
     name:str
+
+class MessageCreate(BaseModel):
+    receiver_id:int
+    content:str
+
+class MessageResponse(BaseModel):
+    id:int
+    sender_id:int
+    receiver_id:int
+    convo_id:int
+    content:str
+    is_read:bool
+    created_at:datetime
+    class Config:
+        from_attributes=True
+    

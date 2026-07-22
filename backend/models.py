@@ -20,6 +20,8 @@ class Users(Base):
     likes=relationship("Like")
     is_active=Column(Boolean,default=True)
     tagged_posts=relationship("Tags",back_populates="user")
+    is_online=Column(Boolean,default=False)
+    last_seen=Column(DateTime,nullable=True)
 
 class Posts(Base):
     __tablename__="posts"
@@ -90,6 +92,35 @@ class Notifcation(Base):
     post_id=Column(Integer,ForeignKey("posts.id",ondelete="CASCADE"))
     message=Column(String,nullable=False)
     is_read=Column(Boolean,default=False)
+    convo_id=Column(Integer,ForeignKey("conversations.id"),nullable=True)
     created_at=Column(DateTime,default=datetime.utcnow)
     user=relationship("Users")
     post=relationship("Posts")
+
+class Message(Base):
+    __tablename__="messages"
+    id=Column(Integer,primary_key=True,index=True)
+    convo_id=Column(Integer,ForeignKey("conversations.id"),nullable=False)
+    content=Column(Text,nullable=False)
+    is_read=Column(Boolean,default=False)
+    sender_id=Column(Integer,ForeignKey("users.id"),nullable=False)
+    receiver_id=Column(Integer,ForeignKey("users.id"),nullable=False)
+    created_at=Column(DateTime,default=datetime.utcnow)
+    sender=relationship("Users",foreign_keys=[sender_id])
+    receiver=relationship("Users",foreign_keys=[receiver_id])
+    conversation=relationship("Conversation",back_populates="messages")
+    deletedbysender=Column(Boolean,default=False)
+    deletedbyreceiver=Column(Boolean,default=False)
+
+class Conversation(Base):
+    __tablename__="conversations"
+    id=Column(Integer,primary_key=True,index=True)
+    created_at=Column(DateTime,default=datetime.utcnow)
+    messages=relationship("Message",back_populates="conversation",cascade="all,delete-orphan")
+    status=Column(String,default="accepted")
+    deletedbysender=Column(Boolean,default=False)
+    deletedbyreceiver=Column(Boolean,default=False)
+    user1_id=Column(Integer,ForeignKey("users.id"))
+    user2_id=Column(Integer,ForeignKey("users.id"))
+    deleted_by_user1_at=Column(DateTime,nullable=True)
+    deleted_by_user2_at=Column(DateTime,nullable=True)

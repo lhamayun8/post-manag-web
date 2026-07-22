@@ -22,7 +22,7 @@ import Friends from "./Pages/Friends";
 import Posts from "./Pages/Posts";
 import Notifications from "./components/Notifications";
 import { useState } from "react";
-
+import Messages from "./Pages/Messages";
 
 const publicroutes = [
   { path: "/", element: <Home></Home> },
@@ -45,6 +45,7 @@ const privateroutes = [
   { path: "/profile/edit", element: <EditProfile></EditProfile> },
   { path: "/profile/changepass", element: <EditPassword></EditPassword> },
   { path: "/dashboard", element: <Dashboard></Dashboard> },
+  {path:"/messages",element:<Messages></Messages>},
   {path:"/friends",element:<Friends></Friends>}
 ];
 const adminroute = [
@@ -70,6 +71,7 @@ function AppContent() {
             <>
               <Link to="/friends">Friends</Link>
               <Link to="/profile">Profile</Link>
+              <Link to="/messages">Messages</Link>
               <Notifications/>
               {user?.role === "admin" && (
                 <Link to="/admin/dashboard">Admin Dashboard</Link>

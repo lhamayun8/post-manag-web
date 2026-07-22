@@ -34,6 +34,9 @@ export default function Notifications() {
                 navigate(`/posts/${notif.post_id}`)
             }else if(notif.message.includes("friend request")){
                 navigate("/friends")
+            }else if(notif.message.includes("message request")){
+                setShow(false)
+                navigate("/messages",{state:{tab:"requests",convo_id:notif.convo_id}})
             }
         }
         catch(err){

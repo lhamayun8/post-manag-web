@@ -51,7 +51,7 @@ def makeadmin(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db))
 
 @router.get("/users",response_model=List[User])
 def users(admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-    users=db.query(Users).all()
+    users=db.query(Users).filter(Users.is_verified == True).all()
     return[{"id":u.id,"name":u.name,"email":u.email,"role":u.role,"is_active":u.is_active} for u in users]
     
 @router.get("/posts",response_model=List[Post])

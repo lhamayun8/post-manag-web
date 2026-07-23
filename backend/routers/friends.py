@@ -21,7 +21,7 @@ def get_user(user_id:int,db:Session=Depends(get_db)):
 
 @router.get("/users")
 def users(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.id!=currentuser.id).all()
+    user=db.query(Users).filter(Users.id!=currentuser.id,Users.is_verified == True).all()
     result=[]
     for u in user:
         status="none"

@@ -141,7 +141,7 @@ def declinerequest(conversation_id:int,currentuser=Depends(getcurrentuser),db:Se
 
 @router.get("/search")
 def searchusers(find:str,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    users=db.query(Users).filter(Users.name.ilike(f"%{find}%")).filter(Users.id!=currentuser.id).all()
+    users=db.query(Users).filter(Users.name.ilike(f"%{find}%")).filter(Users.id!=currentuser.id,Users.is_verified == True).all()
     return users
 
 @router.get("/{conversation_id}")

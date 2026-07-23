@@ -39,11 +39,11 @@ async def registeruser(user:UserCreate,db:Session=Depends(get_db)):
             raise HTTPException(status_code=400,detail="Email already exists")
         db.delete(exist)
         db.commit()
-    user=db.query(Users).filter(Users.name==user.name).first()
-    if user:
-        if user.is_verified:
+    nameexist=db.query(Users).filter(Users.name==user.name).first()
+    if nameexist:
+        if nameexist.is_verified:
             raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
-        db.delete(user)
+        db.delete(nameexist)
         db.commit()
     code=str(random.randint(100000,999999))
     newuser=Users(name=user.name,email=user.email,password=hashpass(user.password),role="user",verfcode=code,is_verified=False,verfcode_expiry=datetime.utcnow()+timedelta(minutes=15))

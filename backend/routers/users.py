@@ -30,19 +30,21 @@ def checkemail(email:str,db:Session=Depends(get_db)):
         raise HTTPException(status_code=404,detail="No such email exists.Please register this email.")
     return user
 
-def emailexist(email:str,db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.email==email).first()
-    if user:
-
-        raise HTTPException(status_code=400,detail="Email already exists")
-    return user
 
 @router.post("/register",response_model=User)
 async def registeruser(user:UserCreate,db:Session=Depends(get_db)):
-    emailexist(user.email,db)
-    if db.query(Users).filter(Users.name==user.name).first():
-        db.close()
-        raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
+    exist=db.query(Users).filter(Users.email==user.email).first()
+    if exist:
+        if exist.is_verified:
+            raise HTTPException(status_code=400,detail="Email already exists")
+        db.delete(exist)
+        db.commit()
+    user=db.query(Users).filter(Users.name==user.name).first()
+    if user:
+        if user.is_verified:
+            raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
+        db.delete(user)
+        db.commit()
     code=str(random.randint(100000,999999))
     newuser=Users(name=user.name,email=user.email,password=hashpass(user.password),role="user",verfcode=code,is_verified=False,verfcode_expiry=datetime.utcnow()+timedelta(minutes=15))
     db.add(newuser)

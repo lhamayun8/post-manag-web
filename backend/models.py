@@ -103,6 +103,8 @@ class Message(Base):
     convo_id=Column(Integer,ForeignKey("conversations.id"),nullable=False)
     content=Column(Text,nullable=False)
     is_read=Column(Boolean,default=False)
+    is_delivered=Column(Boolean,default=False)
+    delivered_at=Column(DateTime,nullable=True)
     sender_id=Column(Integer,ForeignKey("users.id"),nullable=False)
     receiver_id=Column(Integer,ForeignKey("users.id"),nullable=False)
     created_at=Column(DateTime,default=datetime.utcnow)

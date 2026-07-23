@@ -54,6 +54,33 @@ export default function Chat({convoid,setconvoid,receiver,receivername,currentus
       timeZone:"Asia/Karachi",dateStyle:"medium",timeStyle:"short"
     })
   }
+  function ticks(m){
+    if(m.sender_id!==currentuserid) 
+      return null
+    if(m.is_read) 
+      return <span className="ticks tick-read" title="Read">✓✓</span>
+    if(m.is_delivered) 
+      return <span className="ticks tick-delivered" title="Delivered">✓✓</span>
+    return <span className="ticks tick-sent" title="Sent">✓</span>
+  }
+  useEffect(()=>{
+      function handleDelivered(data){
+        if(data.conversation_id!==convoid) 
+          return
+        setMessages(prev=>prev.map(
+          m=>data.message_ids.includes(m.id)?{...m,is_delivered:true}:m))
+      }
+      function handleRead(data){
+        if(data.conversation_id!==convoid) 
+          return
+        setMessages(prev=>prev.map
+          (m=>data.message_ids.includes(m.id)?{...m,is_read:true,is_delivered:true}:m))
+      }
+      socket.on("messages_delivered",handleDelivered)
+      socket.on("messages_read",handleRead)
+      return()=>
+        {socket.off("messages_delivered",handleDelivered);socket.off("messages_read",handleRead)}
+    },[convoid])
   useEffect(()=>{
     function handlestatus(data){
       if(data.user_id===receiver){
@@ -127,12 +154,12 @@ useEffect(()=>{
         </div>
       </div>
       <div className='chat-box'>
-        {convostatus==="pending" &&(<div className='request-message'>Message request is sent.Waiting for {receivername} to accept,</div>)}
+        {convostatus==="pending" &&(<div className='request-message'>Message request is sent.Waiting for {receivername} to accept.</div>)}
         {messages.length===0 &&(<p className='empty-chat'>No messages yet</p>)}
         {messages.map((m)=>(<div key={m.id} className={`chat-message ${m.sender_id===currentuserid ?"sent":"received"}`}>
           <div className='message-bubble'>
             <p>{m.content}</p>
-            <small>{formatDate(m.created_at)}</small>
+            <small>{formatDate(m.created_at)} {ticks(m)}</small>
             <button title="Delete message"className='delete-notification' onClick={()=>{setdeletemessage(m);setshowdelete(true)}}>🗑️</button>
           </div>
           </div>

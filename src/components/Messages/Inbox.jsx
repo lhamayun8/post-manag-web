@@ -4,6 +4,7 @@ import socket from '../../socket'
 export default function Inbox({setTab,setconvoid,setreceivername,setReceiver}) {
     const[messages,setMessages]=useState([])
     const[error,setError]=useState("")
+    const[confirm,setconfirm]=useState(null)
     const closeerror=()=>{
     setError("")
     }
@@ -54,6 +55,17 @@ export default function Inbox({setTab,setconvoid,setreceivername,setReceiver}) {
   function textshort(text){
     return text.split(" ").slice(0,4).join(" ")+"..."
   }
+  async function deleteinbox(conversation_id){
+    try{
+      await axios.delete(`http://localhost:8000/messages/inbox/${conversation_id}`,{
+        headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}
+      })
+      setMessages(prev=>prev.filter(chat=>chat.conversation_id!==conversation_id))
+      setconfirm(null)
+    }catch(err){
+      setError(err.response?.data?.detail ||"Failed to delete conversation")
+    }
+  }
   return (
     <div className='inbox'>
       <h2>Inbox</h2>
@@ -68,8 +80,18 @@ export default function Inbox({setTab,setconvoid,setreceivername,setReceiver}) {
               <small>{chat.unread && <span className='unread-dot'></span>}{formatDate(chat.time)}</small>
             </div>
             </div>
+            <button title="Delete chat permanently" className='delete-notification' onClick={(e)=>{e.stopPropagation();setconfirm(chat.conversation_id)}}>🗑️</button>
             </div>
       ))}
+      {confirm!==null && (
+          <div className='delete-popup-overlay'>
+            <div className='delete-popup'>
+              <p>Delete this chat?</p>
+              <button onClick={()=>deleteinbox(confirm)}>Delete chat</button>
+              <button className='cancel-btn' onClick={()=>setconfirm(null)}>Cancel</button>
+            </div>
+          </div>
+        )}
         {error && (
         <div className="error-box">
         <span>{error}</span>

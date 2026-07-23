@@ -1339,9 +1339,6 @@ tr:hover {
     border-radius: 10px;
 }
 
-
-
-/* each notification */
 .notification-item {
 
     display:flex;
@@ -1437,7 +1434,7 @@ tr:hover {
 
     color:#777;
 
-}/* ===== Messages Page Layout ===== */
+}
 .messages-page {
   display: flex;
   min-height: calc(100vh - 70px);
@@ -1445,7 +1442,6 @@ tr:hover {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ===== Sidebar ===== */
 .messages-sidebar {
   width: 260px;
   background: #222;
@@ -1465,7 +1461,6 @@ tr:hover {
   color: white;
   cursor: pointer;
   border-radius: 8px;
-  font-size: 15px;
   transition: .3s;
 }
 
@@ -1516,6 +1511,35 @@ tr:hover {
 .conversation:hover{
     background:#f7f7f7;
 }
+
+.conversation .delete-notification{
+    opacity:0;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size:16px;
+    flex-shrink:0;
+    transition:.2s;
+}
+
+.conversation:hover .delete-notification{
+    opacity:1;
+}
+
+.ticks{
+    font-size:13px;
+    letter-spacing:-2px;
+    margin-left:4px;
+}
+
+.tick-sent, .tick-delivered{
+    color:#8696a0;
+}
+
+.tick-read{
+    color:#53bdeb;
+}
+
 
 .avatar{
     width:52px;
@@ -1713,7 +1737,6 @@ tr:hover {
   border-bottom-left-radius: 3px;
 }
 
-/* ===== Chat Input ===== */
 .chat-input {
   display: flex;
   gap: 10px;
@@ -1850,8 +1873,6 @@ tr:hover {
 }
 
 
-/* Empty State */
-
 .requests-container > p {
   background: white;
   padding: 30px;
@@ -1861,8 +1882,6 @@ tr:hover {
   box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
-
-/* Request Card */
 
 .request-card {
   background: white;
@@ -1884,9 +1903,6 @@ tr:hover {
   transform: translateY(-3px);
   box-shadow:0 8px 25px rgba(0,0,0,.12);
 }
-
-
-/* Avatar */
 
 .request-card .avatar {
 
@@ -1915,8 +1931,6 @@ tr:hover {
 }
 
 
-/* Name */
-
 .request-card h4 {
 
   margin:0;
@@ -1928,8 +1942,6 @@ tr:hover {
   flex:1;
 }
 
-
-/* Message */
 
 .request-card p {
 
@@ -1944,8 +1956,6 @@ tr:hover {
 }
 
 
-/* Buttons wrapper */
-
 .request-buttons {
 
   margin-left:auto;
@@ -1956,9 +1966,6 @@ tr:hover {
 
 }
 
-
-
-/* Accept button */
 
 .request-buttons button:first-child {
 
@@ -1986,9 +1993,6 @@ tr:hover {
 }
 
 
-
-/* Decline button */
-
 .request-buttons button:last-child {
 
   background:#ef4444;
@@ -2014,9 +2018,6 @@ tr:hover {
 
 }
 
-
-
-/* Error box */
 
 .error-box {
 
@@ -2058,7 +2059,7 @@ tr:hover {
     position:static;
     margin:5px 0 0;
 }
-/* HEADER */
+
 .chat-user{
  display:flex;
  flex-direction:column;
@@ -2117,8 +2118,6 @@ tr:hover {
 }
 
 
-/* MESSAGE AREA */
-
 .chat-box{
 
     flex:1;
@@ -2129,9 +2128,6 @@ tr:hover {
     background:#fafafa;
 
 }
-
-
-/* ROWS */
 
 .message-row{
 
@@ -2154,10 +2150,6 @@ tr:hover {
     justify-content:flex-start;
 
 }
-
-
-
-/* INPUT */
 
 
 .chat-input{
@@ -2232,7 +2224,6 @@ tr:hover {
   background: #1d4ed8;
 }
 
-/* ===== Requests ===== */
 .message-actions {
   display: flex;
   gap: 10px;
@@ -2256,7 +2247,6 @@ tr:hover {
   cursor: pointer;
 }
 
-/* ===== Empty State ===== */
 .empty-message {
   background: white;
   padding: 30px;

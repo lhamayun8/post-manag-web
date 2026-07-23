@@ -66,6 +66,10 @@ class PostCreate(BaseModel):
             raise ValueError("title cannot be empty")
         return value
 
+class Taggeduser(BaseModel):
+    id:int
+    name:str
+    
 class Post(BaseModel):
     id:int
     title:str
@@ -105,10 +109,6 @@ class Like(BaseModel):
     class Config:
         from_attributes=True
 
-class Taggeduser(BaseModel):
-    id:int
-    name:str
-
 class MessageCreate(BaseModel):
     receiver_id:int
     content:str
@@ -120,7 +120,10 @@ class MessageResponse(BaseModel):
     convo_id:int
     content:str
     is_read:bool
+    is_delivered:bool=False
+    delivered_at:Optional[datetime]
     created_at:datetime
+    status:Optional[str]=None
     class Config:
         from_attributes=True
     

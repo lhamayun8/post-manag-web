@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import socketio
 from database import Base,engine,SessionLocal
 from models import Users
-from routers import users,posts,admin,friends,sockets,connections,messages
+from routers import users,posts,admin,friends,sockets,connections,messages,chat,personal,suggestions
 from fastapi.middleware.cors import CORSMiddleware
 from routers.sockets import sio
 app=FastAPI()
@@ -14,6 +14,9 @@ app.include_router(friends.router)
 app.include_router(sockets.router)
 app.include_router(messages.router)
 app.include_router(connections.router)
+app.include_router(chat.router)
+app.include_router(personal.router)
+app.include_router(suggestions.router)
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173"],allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"],)
 

@@ -23,14 +23,14 @@ def getconvo(user1,user2,db):
 
 @router.get("/status/{user_id}")
 def user_status(user_id:int,db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.id==user_id).first()
+    user=(db.query(Users).with_entities(Users.is_online,Users.last_seen).filter(Users.id==user_id).first())
     if not user:
         raise HTTPException(status_code=404,detail="User is not found")
     return{"online":user.is_online,"last_seen":user.last_seen}
 
 @router.post("/",response_model=MessageResponse)
 async def sendmessage(data:MessageCreate,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    receiver=db.query(Users).filter(Users.id==data.receiver_id).first()
+    receiver=(db.query(Users).with_entities(Users.id,Users.name).filter(Users.id==data.receiver_id).first())
     if not receiver:
         raise HTTPException(status_code=404,detail="User does not exist")
     friend=db.query(Friendship).filter(or_(and_(Friendship.user_id==currentuser.id,Friendship.friend_id==data.receiver_id),and_(Friendship.user_id==data.receiver_id,Friendship.friend_id==currentuser.id))).first()
@@ -65,27 +65,30 @@ async def sendmessage(data:MessageCreate,currentuser=Depends(getcurrentuser),db:
 @router.get("/inbox")
 def myconversation(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
     conversations=(db.query(Conversation).filter(or_(Conversation.user1_id==currentuser.id,Conversation.user2_id==currentuser.id)).all())
+    user_ids=set()
+    for convo in conversations:
+        user_ids.add(convo.user2_id if convo.user1_id==currentuser.id else convo.user1_id)
+    users={user.id:user for user in db.query(Users).filter(Users.id.in_(user_ids)).all()}
     result=[]
     for convo in conversations:
         is_user1=currentuser.id==convo.user1_id
-        deleted=convo.deletedbysender if is_user1 else convo.deletedbyreceiver
-        end=convo.deleted_by_user1_at if is_user1 else convo.deleted_by_user2_at
-        query=db.query(Message).filter(Message.convo_id==convo.id)
+        deleted=(convo.deletedbysender if is_user1 else convo.deletedbyreceiver)
+        end=(convo.deleted_by_user1_at if is_user1 else convo.deleted_by_user2_at)
+        query=(db.query(Message).filter(Message.convo_id==convo.id))
         query=query.filter(or_(
             and_(Message.sender_id==currentuser.id,Message.deletedbysender==False),
             and_(Message.receiver_id==currentuser.id,Message.deletedbyreceiver==False),
         ))
         if deleted and end:
             query=query.filter(Message.created_at>end)
-        mess=query.order_by(Message.created_at.desc()).first()
+        mess=(query.order_by(Message.created_at.desc()).first())
         if not mess:
             continue
-        otherid=convo.user2_id if currentuser.id==convo.user1_id else convo.user1_id
-        other=db.query(Users).filter(Users.id==otherid).first()
+        otherid=(convo.user2_id if is_user1 else convo.user1_id)
+        other=users.get(otherid)
         if not other:
             continue
-        unread=db.query(Message).filter(Message.convo_id==convo.id,Message.receiver_id==currentuser.id,Message.is_read==False)
-        un=unread.count()
+        un=db.query(Message).filter(Message.convo_id==convo.id,Message.receiver_id==currentuser.id,Message.is_read==False).count()
         result.append({"conversation_id":convo.id,"user_id":other.id,"unread":un>0,"last_message":mess.content if mess else None,"user_name":other.name if mess else None,"time":mess.created_at if mess else convo.created_at})
         result.sort(key=lambda x:x["time"],reverse=True)
     return result
@@ -109,10 +112,13 @@ def deleteconversation(conversation_id:int,currentuser=Depends(getcurrentuser),d
 
 @router.get("/requests")
 def messagerequests(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    requests=(db.query(Conversation).join(Message).filter(Conversation.status=="pending",Message.receiver_id==currentuser.id).all())
+    requests=(db.query(Message).join(Conversation).filter(Conversation.status=="pending",Message.receiver_id==currentuser.id).order_by(Message.created_at.desc()).all())
     result=[]
+    seen=set()
     for convo in requests:
-        message=db.query(Message).filter(Message.convo_id==convo.id,Message.receiver_id==currentuser.id).order_by(Message.created_at.desc()).first()
+        if convo.convo_id in seen:
+            continue
+        seen.add(convo.convo_id)
         result.append({"conversation_id":convo.id,"sender_id":message.sender.id,"from":message.sender.name,"message":message.content})
     return result
 
@@ -141,7 +147,7 @@ def declinerequest(conversation_id:int,currentuser=Depends(getcurrentuser),db:Se
 
 @router.get("/search")
 def searchusers(find:str,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    users=db.query(Users).filter(Users.name.ilike(f"%{find}%")).filter(Users.id!=currentuser.id,Users.is_verified == True).all()
+    users=(db.query(Users).with_entities(Users.id,Users.name,Users.email).filter(Users.name.ilike(f"%{find}%")).filter(Users.id!=currentuser.id,Users.is_verified == True).all())
     return users
 
 @router.get("/{conversation_id}")
@@ -164,7 +170,7 @@ def getmessages(conversation_id:int,currentuser=Depends(getcurrentuser),db:Sessi
     if deleted and end:
         query=query.filter(Message.created_at>end)
     messages=query.order_by(Message.created_at).all()
-    otheruser=db.query(Users).filter(Users.id==other_id).first()
+    otheruser=(db.query(Users).with_entities(Users.id,Users.name,Users.is_online,Users.last_seen).filter(Users.id==other_id).first())
     return {
         "messages":messages,"conversation_status":conversation.status,"user_status":{
             "id":otheruser.id,"name":otheruser.name,"is_online":otheruser.is_online,"last_seen":otheruser.last_seen
@@ -172,7 +178,7 @@ def getmessages(conversation_id:int,currentuser=Depends(getcurrentuser),db:Sessi
     }
 @router.put("/{conversation_id}/read")
 async def messageread(conversation_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    unread_ids=[m.id for m in db.query(Message).filter(Message.convo_id==conversation_id,Message.receiver_id==currentuser.id,Message.is_read==False).all()]
+    unread_ids=[id for (id,) in db.query(Message.id).filter(Message.convo_id==conversation_id,Message.receiver_id==currentuser.id,Message.is_read==False).all()]
     if unread_ids:
         db.query(Message).filter(Message.id.in_(unread_ids)).update({Message.is_read:True},synchronize_session=False)
         db.commit()

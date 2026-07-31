@@ -2,10 +2,16 @@ import socketio
 from fastapi import APIRouter
 from database import SessionLocal
 from models import Users,Message
-from datetime import datetime
+from datetime import datetime,timezone
 router=APIRouter()
 sio=socketio.AsyncServer(async_mode="asgi",cors_allowed_origins=["http://localhost:5173"])
 onlineusers={}
+def utc_now():
+    return datetime.now(timezone.utc)
+
+def get_db():
+    return SessionLocal()
+
 @sio.event
 async def connect(sid,environ):
     print("Connected",sid)
@@ -13,27 +19,26 @@ async def connect(sid,environ):
 @sio.event
 async def register(sid,user_id):
     user_id=int(user_id)
-    if user_id not in onlineusers:
-        onlineusers[user_id]=[]
-    onlineusers[user_id].append(sid)
+    sockets=onlineusers.setdefault(user_id,[])
+    if sid not in sockets:
+        sockets.append(sid)
     await sio.enter_room(sid,f"user_{user_id}")
-    db=SessionLocal()
-    user=db.query(Users).filter(Users.id==user_id).first()
-    if user:
+    db=get_db()
+    try:
+        user=(db.query(Users).filter(Users.id==user_id).first())
         user.is_online=True
         user.last_seen=None
+        pending=(db.query(Message).filter(Message.receiver_id==user_id,Message.is_delivered==False).all())
+        convo_updates={}
+        current=utc_now()
+        for msg in pending:
+            msg.is_delivered=True
+            msg.delivered_at=current
+            convo_updates.setdefault(msg.convo_id,{"sender_id":msg.sender_id,"message_ids":[]})
+            convo_updates[msg.convo_id]["message_ids"].append(msg.id)
         db.commit()
-    pending=db.query(Message).filter(Message.receiver_id==user_id,Message.is_delivered==False).all()
-    convo_updates={}
-    now=datetime.utcnow()
-    for msg in pending:
-        msg.is_delivered=True
-        msg.delivered_at=now
-        convo_updates.setdefault(msg.convo_id,{"sender_id":msg.sender_id,"message_ids":[]})
-        convo_updates[msg.convo_id]["message_ids"].append(msg.id)
-    if pending:
-        db.commit()
-    db.close()
+    finally:
+        db.close()
     await sio.emit("status",{"user_id":user_id,"is_online":True,"last_seen":None})
     for convo_id,info in convo_updates.items():
         await send_to_user(info["sender_id"],"messages_delivered",{"conversation_id":convo_id,"message_ids":info["message_ids"]})
@@ -46,13 +51,15 @@ async def disconnect(sid):
             sockets.remove(sid)
             if len(sockets)==0:
                 del onlineusers[user_id]
-                db=SessionLocal()
-                user=db.query(Users).filter(Users.id==user_id).first()
-                if user:
-                    user.is_online=False
-                    user.last_seen=datetime.utcnow()
-                    db.commit()
-                db.close()
+                db=get_db()
+                try:
+                    user=db.query(Users).filter(Users.id==user_id).first()
+                    if user:
+                        user.is_online=False
+                        user.last_seen=datetime.utcnow()
+                        db.commit()
+                finally:
+                    db.close()
                 await sio.emit("status",{"user_id":user_id,"is_online":False,"last_seen":str(datetime.utcnow())})
             print("Offline",user_id)
             break

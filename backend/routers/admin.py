@@ -4,7 +4,7 @@ from models import Users,Posts,Comment
 from authentication import verifytoken,getcurrentuser
 from schema import Post,User,PostCreate
 from typing import List,Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 router=APIRouter(prefix="/admin",tags=["admin"])
 
 def post_response(post):
@@ -25,7 +25,7 @@ def verifyadmin(currentuser=Depends(getcurrentuser)):
     return currentuser
 
 def get_post(post_id:int,db:Session=Depends(get_db)):
-     post=db.query(Posts).filter(Posts.id==post_id).first()
+     post=(db.query(Posts).options(joinedload(Posts.owner)).filter(Posts.id==post_id).first())
      if not post:
           raise HTTPException(status_code=404,detail="Post not found")
      return post
@@ -44,24 +44,25 @@ def get_user(user_id:int,db:Session=Depends(get_db)):
 
 @router.put("/makeadmin/{user_id}")
 def makeadmin(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-        user=get_user(user_id,db)
-        user.role="admin"
+        update=(db.query(Users).filter(Users.id==user_id).update({Users.role:"admin"}))
+        if not update:
+             raise HTTPException(status_code=404,detail="No such user")
         db.commit()
         return{"message":"Now an admin"}
 
 @router.get("/users",response_model=List[User])
 def users(admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-    users=db.query(Users).filter(Users.is_verified == True).all()
-    return[{"id":u.id,"name":u.name,"email":u.email,"role":u.role,"is_active":u.is_active} for u in users]
+    users=db.query(Users.id,Users.name,Users.email,Users.role,Users.is_active).filter(Users.is_verified == True).all()
+    return users
     
 @router.get("/posts",response_model=List[Post])
 def posts(admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-    posts=db.query(Posts).filter(Posts.status=="published").all()
+    posts=(db.query(Posts).options(joinedload(Posts.owner)).filter(Posts.status=="published").all())
     return[post_response(post) for post in posts]
 
 @router.put("/block/{user_id}")
 def blockuser(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-     user=get_user(user_id,db)
+     user=(db.query(Users.id,Users.role).filter(Users.id==user_id).first())
      if user.id==admin.id:
           raise HTTPException(status_code=400,detail="Admin cannot block himself")
      if user.role=="admin":
@@ -72,8 +73,9 @@ def blockuser(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db))
 
 @router.put("/activate/{user_id}")
 def activateuser(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-     user=get_user(user_id,db)
-     user.is_active=True
+     update=(db.query(Users).filter(Users.id==user_id).update({Users.is_active:True}))
+     if not update:
+          raise HTTPException(status_code=404,detail="No such user")
      db.commit()
      return{"message":"User is activated"}
 

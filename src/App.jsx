@@ -23,6 +23,7 @@ import Posts from "./Pages/Posts";
 import Notifications from "./components/Notifications";
 import { useState } from "react";
 import Messages from "./Pages/Messages";
+import Chatbot from "./components/Chatbot";
 
 const publicroutes = [
   { path: "/", element: <Home></Home> },
@@ -54,6 +55,7 @@ const adminroute = [
 
 function AppContent() {
   const { user,loading } = useAuth();
+  const location = useLocation();
   if (loading) {
   return <div>Loading...</div>;
 }
@@ -73,6 +75,7 @@ function AppContent() {
               <Link to="/profile">Profile</Link>
               <Link to="/messages">Messages</Link>
               <Notifications/>
+              {<Chatbot user={user} />}
               {user?.role === "admin" && (
                 <Link to="/admin/dashboard">Admin Dashboard</Link>
               )}

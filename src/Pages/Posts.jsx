@@ -5,6 +5,8 @@ import MyDrafts from '../components/Posts/MyDrafts'
 import MyPosts from '../components/Posts/MyPosts'
 import MakePost from '../components/Posts/MakePost'
 import EditPost from '../components/Posts/EditPost'
+import TrendingPost from '../components/Posts/TrendingPost'
+
 export default function Posts() {
     const{user}=useAuth()
     const[editId,setEditId]=useState(null)
@@ -13,6 +15,7 @@ export default function Posts() {
     <div className='posts-page'>            
         <div className='posts-sidebar'>
             <button onClick={()=>setTab("published")}>Published Posts</button>
+            <button onClick={()=>setTab("trending")}>Trending</button>
             {user &&(
                 <>
                 <button onClick={()=>setTab("myposts")}>My Posts</button>
@@ -23,12 +26,12 @@ export default function Posts() {
         </div>
         <div className='posts-content'>
             {tab==="published" && (<PostList></PostList>)}
+            {tab==="trending" &&<TrendingPost></TrendingPost>}
             {user && tab==="myposts" && (<MyPosts setTab={setTab} setEditId={setEditId}></MyPosts>)}
             {user && tab==="drafts" &&(<MyDrafts setTab={setTab} setEditId={setEditId}></MyDrafts>) }
             {user && tab==="create" &&(<MakePost setTab={setTab}></MakePost>)}
             {user && tab==="edit" &&(<EditPost id={editId} setTab={setTab}></EditPost>)}
         </div>
-      
     </div>
   )
 }

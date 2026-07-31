@@ -4,7 +4,7 @@ import MyFriends from '../components/Friends/MyFriends'
 import FindFriends from '../components/Friends/FindFriends'
 import SentRequests from '../components/Friends/SentRequests'
 import FriendRequests from '../components/Friends/FriendRequests'
-
+import Suggestions from '../components/Friends/Suggestions'
 export default function Friends() {
     const[tab,setTab]=useState("find")
   return (
@@ -14,6 +14,7 @@ export default function Friends() {
             <button onClick={()=>setTab("sent")}>Sent requests</button>
             <button onClick={()=>setTab("requests")}>Friend Requests</button>
             <button onClick={()=>setTab("friends")}>My Friends</button>
+            <button onClick={()=>setTab("suggestions")}>Friend Suggestions</button>
         </div>
         <div className='friends-content'>
             {
@@ -28,6 +29,7 @@ export default function Friends() {
             {
                 tab==="friends"&&<MyFriends></MyFriends>
             }
+            {tab==="suggestions" &&<Suggestions></Suggestions>}
         </div>
     </div>
     )

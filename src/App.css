@@ -728,8 +728,219 @@ gap:20px;
 .stat-card p {
   margin-top: 8px;
 }
+/* Admin Dashboard Layout */
+.admin-dashboard-page {
+    display: flex;
+    min-height: calc(100vh - 70px);
+}
+
+.admin-sidebar{
+    width:260px;
+    background:#222;
+    padding: 30px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    min-height: calc(100vh - 72px);
+    flex-shrink: 0;
+}
+.admin-sidebar button{
+    width:100%;
+    padding:12px;
+    border:none;
+    background:#444;
+    color:white;
+    cursor:pointer;
+    border-radius:8px;
+}
 
 
+.admin-sidebar button:hover{
+    background:#666;
+}
+
+.admin-content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.admin-content h1 {
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    color: var(--text);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: var(--card);
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.stat-card .stat-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-top: 4px;
+}
+
+/* Role Badges */
+.role-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.role-badge.admin {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.role-badge.user {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.blocked {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge.published {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.draft {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.archived {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Admin Actions */
+.admin-actions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+}
+
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+    margin-top: 12px;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-container table th {
+    background: var(--background);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-container table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.table-container table tr:hover td {
+    background: var(--background);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-dashboard-page {
+        flex-direction: column;
+    }
+    
+    .admin-sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 12px;
+        min-height: auto;
+    }
+    
+    .admin-sidebar button {
+        width: auto;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .admin-content {
+        padding: 16px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
 .post-actions {
   margin-top: 25px;
   display: flex;

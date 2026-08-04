@@ -14,7 +14,7 @@ export default function Posts() {
   return (
     <div className='posts-page'>            
         <div className='posts-sidebar'>
-            <button onClick={()=>setTab("published")}>Published Posts</button>
+            <button onClick={()=>setTab("published")}>Published</button>
             <button onClick={()=>setTab("trending")}>Trending</button>
             {user &&(
                 <>

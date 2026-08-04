@@ -119,7 +119,7 @@ def messagerequests(currentuser=Depends(getcurrentuser),db:Session=Depends(get_d
         if convo.convo_id in seen:
             continue
         seen.add(convo.convo_id)
-        result.append({"conversation_id":convo.id,"sender_id":message.sender.id,"from":message.sender.name,"message":message.content})
+        result.append({"conversation_id":convo.id,"sender_id":message.sender.id,"from":message.sender.name,"message":message.content} for message in requests)
     return result
 
 @router.put("/{conversation_id}/accept")

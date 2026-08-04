@@ -1,41 +1,64 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import api from "../../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/Authcontext";
 
 export default function PostList() {
   const{user}=useAuth()
-  const [posts, setPost] = useState([]);
-  const [search, setSearch] = useState("");
-  const [err, setError] = useState("");
+  const[posts,setPost]=useState([])
+  const[search,setSearch]=useState("")
+  const[err,setError]=useState("")
   const[likes,setLikes]=useState({})
+  const[loading,setLoading]=useState(false)
+  const[hasMore,setHasMore]=useState(true)
+  const [page, setPage] = useState(0);
+  const[total,setTotal]=useState(0)
+  const limit=10
   const[comments,setComments]=useState({})
   const[newcomment,setnewComment]=useState({})
   const[showcomment,setshowcoomment]=useState({})
   const[likeusers,setlikeusers]=useState({})
   const[showlikeusers,setshowlikeusers]=useState({})
   const[expandposts,setexpandedposts]=useState({})
-
   const navigate=useNavigate()
-
   const closeerror=()=>{
     setError("")
   }
   useEffect(() => {
-    fetchPost();
+    fetchPost(true);
   }, [search]);
-  const fetchPost = async () => {
+  const fetchPost=async (reset=true) => {
+    if(loading)
+      return
+    setLoading(true)
     try {
-      const set = await api.get("/posts", { params: { status:"published",search } });
-      setPost(set.data);
-      set.data.forEach(post => {
+      const skip=reset?0:page*limit;
+      const set=await api.get("/posts", { params: { status:"published",search,limit:limit,skip:skip } });
+      const newpost= set.data.posts || []
+      const total=set.data.total || 0
+      if(reset){
+        setPost(newpost)
+        setPage(1)
+      }else{
+        setPost(prev=>[...prev,...newpost])
+        setPage(prev=>prev+1)
+      }
+      setHasMore(skip+limit<total)
+      newpost.forEach(post => {
         alllikes(post.id)
         getcomments(post.id)
       });
     } catch (err) {
       setError(err.response?.data?.detail || "No published posts avaiable.");
+    }finally{
+      setLoading(false)
     }
   };
+  const loadMore=()=>{
+    if(!loading &&hasMore){
+      fetchPost(false)
+    }
+  }
   const alllikes=async(postid)=>{
     try{
       const set=await api.get(`/posts/${postid}/likes`)
@@ -72,7 +95,7 @@ export default function PostList() {
   const getcomments=async(postid)=>{
     try{
       const set=await api.get(`/posts/${postid}/comments`)
-      setComments(prev=>({...prev,[postid]:set.data}))
+      setComments(prev=>({...prev,[postid]:set.data.comments})|| [])
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -215,6 +238,19 @@ export default function PostList() {
             )} 
     </div> 
   ))}
+  {loading &&<p style={{textAlign:"center"}}>Loading</p>}
+  {hasMore && !loading && (
+    <div style={{ textAlign: "center", margin: "2rem 0" }}>
+      <button className="btn btn-primary" onClick={loadMore} style={{ padding: "10px 30px", fontSize: "16px" }}>
+                See More Posts</button>
+            </div>
+          )}
+
+          {!hasMore && posts.length > 0 && (
+            <p style={{ textAlign: "center", color: "#666" }}>
+              No more posts to load
+            </p>
+          )}
         {err && (
         <div className="error-box">
         <span>{err}</span>

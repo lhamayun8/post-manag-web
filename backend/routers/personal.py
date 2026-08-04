@@ -16,6 +16,8 @@ def personalisedfeed(currentuser=Depends(getcurrentuser),db:Session=Depends(get_
     service=FeedService(db)
     return service.getpersonalisedfeed(currentuser.id)
 @router.get("/trending")
-def trendingfeed(db:Session=Depends(get_db)):
+def trendingfeed(skip:int=0,limit:int=10,days:int=7,refresh:bool=False,db:Session=Depends(get_db)):
     service=FeedService(db)
-    return service.gettrendingfeed()
+    if refresh:
+        service.clear_cache()
+    return service.gettrendingfeed(limit=limit,skip=skip,days=days,search=None)

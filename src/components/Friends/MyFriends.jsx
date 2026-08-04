@@ -13,7 +13,7 @@ export default function MyFriends() {
             const set=await api.get("/friends/")
             setFriends(set.data)
         }catch(err){
-            setError(error.response?.data?.detail ||"failed to load friends");
+            setError(err.response?.data?.detail ||"failed to load friends");
         }
     }
     useEffect(()=>{
@@ -40,7 +40,6 @@ export default function MyFriends() {
                     </div>
                     <div className='user-details'>
                         <h4>{friend.name}</h4>
-                        <p>{friend.email}</p>
                     </div>
                     </div>
                     <div className='friend-actions'>

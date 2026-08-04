@@ -58,7 +58,7 @@ export default function Profile() {
   const getcomments=async(postid)=>{
     try{
       const set=await api.get(`/posts/${postid}/comments`)
-      setComments(prev=>({...prev,[postid]:set.data}))
+      setComments(prev=>({...prev,[postid]:set.data.comments ||[]}))
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -114,13 +114,15 @@ export default function Profile() {
   }
   useEffect(() => {
     const fetchProfile = async () => {
+      setError("")
       try {
         if(id){
           const set = await api.get(`/friends/user/${id}`);
           setProfile(set.data);
           const posts=await api.get(`/posts/user/${id}/posts`);
-          setPost(posts.data);
-          posts.data.forEach(post=>{alllikes(post.id);getcomments(post.id)})
+          const postsdata=posts.data.posts||[]
+          setPost(postsdata);
+          postsdata.forEach(post=>{alllikes(post.id);getcomments(post.id)})
         }else{
           const set = await api.get("/users/me");
           setProfile(set.data);
@@ -129,7 +131,7 @@ export default function Profile() {
           posts.data.forEach(post=>{alllikes(post.id);getcomments(post.id)})
         }
       } catch (err) {
-        setError(err.response?.data?.detail ||"failed to load profile");
+        setError(err.response?.data?.detail ||"Failed to load profile");
       }
     };
     fetchProfile();

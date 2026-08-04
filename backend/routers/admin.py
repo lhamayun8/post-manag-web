@@ -1,14 +1,16 @@
-from fastapi import APIRouter,HTTPException,Header,Depends
+from fastapi import APIRouter,HTTPException,Header,Depends,Query
 from database import SessionLocal
 from models import Users,Posts,Comment
 from authentication import verifytoken,getcurrentuser
 from schema import Post,User,PostCreate
 from typing import List,Optional
-from sqlalchemy.orm import Session,joinedload
+from sqlalchemy.orm import Session,joinedload,selectinload
 router=APIRouter(prefix="/admin",tags=["admin"])
+from sqlalchemy import or_,desc
 
 def post_response(post):
      return{"id":post.id,"title":post.title,"description":post.description,"category":post.category,"status":post.status,"image":post.image,"created_at":post.created_at,
+            "published_at":post.published_at,
             "username":post.owner.name if post.owner else None,
             "owner_id":post.owner_id,"owner_email":post.owner.email if post.owner else None}
 
@@ -44,21 +46,58 @@ def get_user(user_id:int,db:Session=Depends(get_db)):
 
 @router.put("/makeadmin/{user_id}")
 def makeadmin(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db)):
+        if user_id==admin.id:
+          raise HTTPException(status_code=400, detail="Cannot change your own role")
         update=(db.query(Users).filter(Users.id==user_id).update({Users.role:"admin"}))
         if not update:
              raise HTTPException(status_code=404,detail="No such user")
         db.commit()
         return{"message":"Now an admin"}
 
-@router.get("/users",response_model=List[User])
-def users(admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-    users=db.query(Users.id,Users.name,Users.email,Users.role,Users.is_active).filter(Users.is_verified == True).all()
-    return users
+@router.get("/users")
+def users(limit:int=Query(10,ge=1,le=100),skip:int=Query(0,ge=0),search:Optional[str]=Query(None),admin=Depends(verifyadmin),db:Session=Depends(get_db)):
+     query=db.query(Users).filter(Users.is_verified==True)
+     if search:
+          search_term = f"%{search}%"
+          query = query.filter(
+            or_(
+                Users.name.ilike(search_term),
+                Users.email.ilike(search_term)
+            )
+        )
+     query = query.order_by(desc(Users.id))
+     total=query.count()
+     users=query.offset(skip).limit(limit).all()
+     return {"users": [{"id": u.id,"name": u.name,"email": u.email,"role": u.role,
+                         "is_active": u.is_active,"is_verified": u.is_verified,"last_seen": u.last_seen,"post_count": u.post_count,
+                         "comment_count": u.comment_count}for u in users],
+          "total": total,"skip": skip,"limit": limit,"has_more": skip + limit < total
+               }
     
-@router.get("/posts",response_model=List[Post])
-def posts(admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-    posts=(db.query(Posts).options(joinedload(Posts.owner)).filter(Posts.status=="published").all())
-    return[post_response(post) for post in posts]
+@router.get("/posts")
+def posts(limit:int=Query(10,ge=1,le=100),skip:int=Query(0,ge=0),status: Optional[str] = Query(None),search:Optional[str]=Query(None),admin=Depends(verifyadmin),db:Session=Depends(get_db)):
+     query=db.query(Posts).options(joinedload(Posts.owner),selectinload(Posts.likes),selectinload(Posts.comments)).filter(Posts.status=="published")
+     if status:
+          query=query.filter(Posts.status==status)
+     if search:
+         search_term = f"%{search}%"
+         query = query.filter(
+              or_(
+                    Posts.title.ilike(search_term),
+                    Posts.description.ilike(search_term)
+                    )
+                    )
+     query = query.order_by(desc(Posts.id))
+     total=query.count()
+     posts=query.offset(skip).limit(limit).all()
+     return {"posts": [{"id": p.id,"title": p.title,"description":p.description[:200]+"..." if len(p.description)>200 else p.description,
+                       "category":p.category,"status":p.status,"image":p.image,"created_at":p.created_at,"published_at":p.published_at,
+                       "username":p.owner.name if p.owner else "unknown","owner_id":p.owner_id,"owner_email":p.owner.email if p.owner else None,
+                       "likes_count":len(p.likes) if hasattr(p,'likes') else 0,
+                       "comments_count":len(p.comments) if hasattr(p,'comments') else 0
+     }for p in posts],
+              "total": total,"skip": skip,"limit": limit,"has_more": skip + limit < total
+                   }
 
 @router.put("/block/{user_id}")
 def blockuser(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db)):

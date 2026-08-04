@@ -5,23 +5,57 @@ export default function FindFriends() {
     const[search,setSearch]=useState("")
     const[error,setError]=useState("")
     const[message,setMessage]=useState("")
+    const [loading, setLoading] = useState(false)
+    const [hasMore, setHasMore] = useState(true)
+    const [page, setPage] = useState(0)
+    const [total, setTotal] = useState(0)
+    const limit = 10
         const closeerror=()=>{
     setError("")
     }
     const closemessage=()=>{
       setMessage("")
     }
-    const getUsers=async ()=>{
+    const getUsers=async (reset=true)=>{
+        if (loading) return
+        setLoading(true)
         try{
-            const set=await api.get("/friends/users")
-            setUsers(set.data)
+            const skip=reset?0:page*limit
+            const set=await api.get("/friends/users",{params:{limit:limit,skip:skip}})
+            const userdata=set.data.users || []
+            const total=set.data.total ||0
+            if(reset){
+                setUsers(userdata)
+                setPage(1)
+            }else{
+                setUsers(prev=>[...prev,...userdata])
+                setPage(prev=>prev+1)
+            }
+            setTotal(total)
+            setHasMore(skip+limit<total)
         }catch(err){
-            setError(error.response?.data?.detail ||"failed to load users");
+            setError(err.response?.data?.detail ||"failed to load users");
+        }finally{
+            setLoading(false)
         }
     }
     useEffect(()=>{
-        getUsers()
-    },[])
+        const timer = setTimeout(() => {
+            getUsers(true)
+        }, 500)
+        return () => clearTimeout(timer)
+    }, [search])
+
+     useEffect(() => {
+        getUsers(true)
+    }, [])
+
+    const loadMore = () => {
+        if (!loading && hasMore) {
+            getUsers(false)
+        }
+    }
+
     const sendRequest=async(id)=>{
         try{
             await api.post(`/friends/request/${id}`)
@@ -64,6 +98,19 @@ export default function FindFriends() {
                     ))
             )}
         </div>
+        {hasMore && !loading && users.length > 0 && (
+            <div style={{ textAlign: "center", margin: "2rem 0" }}>
+                <button className="btn btn-primary" onClick={loadMore}>
+                                See More Users ({users.length} of {total})
+                            </button>
+                        </div>
+                    )}
+
+                    {!hasMore && users.length > 0 && (
+                        <p style={{ textAlign: "center", color: "#666" }}>
+                            No more users to load
+                        </p>
+                    )}
               {message && (
         <div className="message-box">
         <span>{message}</span>

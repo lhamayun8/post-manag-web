@@ -1,10 +1,13 @@
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,Query
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Users,FriendRequests,Friendship,Notifcation,Posts,Like,Comment
 from authentication import getcurrentuser
 from routers.sockets import notify_user
 from rag import rag
+from typing import Optional
+
+
 router=APIRouter(prefix="/friends",tags=["friends"])
 
 def get_db():
@@ -17,8 +20,12 @@ def get_db():
 def indexfriendship(user_id:int,db: Session):
     try:
         friendships=db.query(Friendship).filter(Friendship.user_id==user_id).all()
+        if not friendships:
+            return True
+        friend_ids=[f.friend_id for f in friendships]
+        friends={f.id:f for f in db.query(Users).filter(Users.id.in_(friend_ids)).all()}
         for friendship in friendships:
-            friend=db.query(Users).filter(Users.id==friendship.friend_id).first()
+            friend=friends.get(friendship.friend_id)
             if not friend:
                 continue
             friend_text=f"""FRIENDSHIP
@@ -77,29 +84,44 @@ def get_user(user_id:int,db:Session=Depends(get_db)):
     return user
 
 @router.get("/users")
-def users(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    user=db.query(Users).filter(Users.id!=currentuser.id,Users.is_verified == True).all()
+def users(limit:int=Query(10,ge=1,le=50),skip:int=Query(0,ge=0),currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+    query=db.query(Users).filter(Users.id!=currentuser.id,Users.is_verified == True,Users.is_active==True)
+    total=query.count()
+    users=query.offset(skip).limit(limit).all()
+    if not users:
+        return{
+             "users": [],
+            "total": 0,
+            "skip": skip,
+            "limit": limit,
+            "has_more": False
+        }
+    user_ids=[u.id for u in users]
+    friendships={f.friend_id:f for f in db.query(Friendship).filter(Friendship.user_id==currentuser.id,
+                                                                    Friendship.friend_id.in_(user_ids)).all()}
+    sentrequests={r.receiver_id:r for r in db.query(FriendRequests).filter(FriendRequests.sender_id==currentuser.id,
+                                                                           FriendRequests.receiver_id.in_(user_ids),
+                                                                           FriendRequests.status=="pending").all()}
+    receivedrequests={r.sender_id:r for r in db.query(FriendRequests).filter(FriendRequests.receiver_id==currentuser.id,
+                                                                           FriendRequests.sender_id.in_(user_ids),
+                                                                           FriendRequests.status=="pending").all()}
     result=[]
-    for u in user:
-        status="none"
-        friend=db.query(Friendship).filter(Friendship.user_id==currentuser.id,
-                                           Friendship.friend_id==u.id).first()
-        if friend:
+    for user in users:
+        if user.id in friendships:
             status="friends"
+        elif user.id in sentrequests:
+            status="pending"
+        elif user.id in receivedrequests:
+            status="received"
         else:
-            request=db.query(FriendRequests).filter(FriendRequests.sender_id==currentuser.id,
-                                                    FriendRequests.receiver_id==u.id,
-                                                    FriendRequests.status=="pending").first()
-            if request:
-                status="pending"
-            else:
-                rec=db.query(FriendRequests).filter(FriendRequests.sender_id==u.id,
-                                                    FriendRequests.receiver_id==currentuser.id,
-                                                    FriendRequests.status=="pending").first()
-                if rec:
-                    status="received"
-        result.append({"id":u.id,"name":u.name,"email":u.email,"status":status})
-    return result
+            status="none"
+        result.append({"id":user.id,"name":user.name,"email":user.email,"status":status})
+        has_more=skip+limit<total
+    return {"users": result,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "has_more": has_more}
 
 @router.post("/request/{user_id}")
 async def send_request(user_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
@@ -111,7 +133,6 @@ async def send_request(user_id:int,currentuser=Depends(getcurrentuser),db:Sessio
                                           FriendRequests.receiver_id==user_id,
                                           FriendRequests.status=="pending").first()
     if exist:
-        db.close()
         raise HTTPException(status_code=400,detail="Request already sent")
     request=FriendRequests(sender_id=currentuser.id,receiver_id=user_id)
     db.add(request)
@@ -158,7 +179,11 @@ def rejectrequest(request_id:int,currentuser=Depends(getcurrentuser),db:Session=
 @router.get("/")
 def friendlist(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
     friends=db.query(Friendship).filter(Friendship.user_id==currentuser.id).all()
-    return[{"id":fr.friend_id,"name":fr.friend.name} for fr in friends]                          
+    if not friends:
+        return []
+    friend_ids=[f.friend_id for f in friends]
+    friend_users={u.id:u for u in db.query(Users).filter(Users.id.in_(friend_ids)).all()}
+    return[{"id":fr.friend_id,"name":friend_users[fr.friend_id].name if fr.friend_id in friend_users else "Unknown"} for fr in friends]                          
 
 @router.get("/sent")
 def requestssent(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):

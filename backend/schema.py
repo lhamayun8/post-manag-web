@@ -126,4 +126,8 @@ class MessageResponse(BaseModel):
     status:Optional[str]=None
     class Config:
         from_attributes=True
-    
+
+
+class PaginatedPosts(BaseModel):
+    total: int
+    posts: list[Post]

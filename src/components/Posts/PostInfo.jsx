@@ -29,7 +29,7 @@ export default function PostInfo() {
         const set = await api.get(`/posts/${id}`);
         setPost(set.data);
         const comset=await api.get(`/posts/${id}/comments`)
-        setComments(comset.data)
+        setComments(comset.data.comments)
         const likeset=await api.get(`/posts/${id}/likes`)
         setLikes(likeset.data.Likes)
         setLikeusers(likeset.data.users)
@@ -85,7 +85,7 @@ export default function PostInfo() {
     try{
       await api.post(`/posts/${id}/comments`,{content:newcomment})
       const set=await api.get(`/posts/${id}/comments`)
-      setComments(set.data)
+      setComments(set.data.comments)
       setNewcomment("")
     }catch(err){
       if(err.response?.status===401){

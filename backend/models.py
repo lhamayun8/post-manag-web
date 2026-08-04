@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column,Integer,String,ForeignKey,Text,Boolean,DateTime,Index
+from sqlalchemy import Column,Integer,String,ForeignKey,Text,Boolean,DateTime,Index,UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -22,7 +22,7 @@ class Users(Base):
     tagged_posts=relationship("Tags",back_populates="user")
     is_online=Column(Boolean,default=False)
     last_seen=Column(DateTime,nullable=True)
-    post_count = Column(Integer, default=0, nullable=False)
+    post_count = Column(Integer, default=0, nullable=False,index=True)
     comment_count = Column(Integer, default=0, nullable=False)
     likes_given = Column(Integer, default=0, nullable=False)
     likes_received = Column(Integer, default=0, nullable=False)
@@ -91,7 +91,12 @@ class Like(Base):
     post=relationship("Posts",back_populates="likes")
     __table_args__ = (
         Index("ix_likes_user","user_id"),
-        Index("ix_likes_post","post_id")
+        Index("ix_likes_post","post_id"),
+        UniqueConstraint(
+        "user_id",
+        "post_id",
+        name="uq_user_post_like"
+    )
     )
 
 class Comment(Base):

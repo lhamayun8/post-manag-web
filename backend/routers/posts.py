@@ -89,8 +89,8 @@ def deletefromrag(post_id:int):
     except Exception as e:
         print(f"RAG delete failed: {e}")
 
-def sendcommentemail(email,username,title):
-    sendemail(email,f"{username} commented on your post '{title}'.","comment")
+async def sendcommentemail(email,username,title):
+    await sendemail(email,f"{username} commented on your post '{title}'.","comment")
 
 def getuserwtoken(authorization:Optional[str]=Header(None),db:Session=Depends(get_db)):
     if not authorization:

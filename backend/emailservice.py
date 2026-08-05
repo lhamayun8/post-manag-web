@@ -127,7 +127,7 @@ async def sendemail(email:str,code,email_type:str):
     </html>
     """
     message = MessageSchema(
-        subject="Verify Your Email - PostManager",
+        subject=subject,
         recipients=[email],
         body=html,
         subtype="html",

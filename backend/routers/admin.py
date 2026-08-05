@@ -101,7 +101,7 @@ def posts(limit:int=Query(10,ge=1,le=100),skip:int=Query(0,ge=0),status: Optiona
 
 @router.put("/block/{user_id}")
 def blockuser(user_id:int,admin=Depends(verifyadmin),db:Session=Depends(get_db)):
-     user=(db.query(Users.id,Users.role).filter(Users.id==user_id).first())
+     user=get_user(user_id,db)
      if user.id==admin.id:
           raise HTTPException(status_code=400,detail="Admin cannot block himself")
      if user.role=="admin":

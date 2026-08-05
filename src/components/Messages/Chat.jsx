@@ -10,6 +10,9 @@ export default function Chat({convoid,setconvoid,receiver,receivername,currentus
     const[deletemessage,setdeletemessage]=useState(null)
     const[showdelete,setshowdelete]=useState(false)
     const[convostatus,setconvostatus]=useState("")
+    const[hasMore,setHasMore]=useState(true)
+    const[loadingMore,setLoadingMore]=useState(false)
+    const chatbox=useRef(null)
       const closeerror=()=>{
     setError("")
   }
@@ -22,6 +25,7 @@ export default function Chat({convoid,setconvoid,receiver,receivername,currentus
             headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
           console.log(set.data)
           setMessages(set.data.messages||[])
+          setHasMore(true)
           setStatus(set.data.user_status)
           setconvostatus(set.data.conversation_status)
           await axios.put(`http://localhost:8000/messages/${convoid}/read`,{},{
@@ -68,13 +72,13 @@ export default function Chat({convoid,setconvoid,receiver,receivername,currentus
         if(data.conversation_id!==convoid) 
           return
         setMessages(prev=>prev.map(
-          m=>data.message_ids.includes(m.id)?{...m,is_delivered:true}:m))
+          m=>data.message_ids?.includes(m.id)?{...m,is_delivered:true}:m))
       }
       function handleRead(data){
         if(data.conversation_id!==convoid) 
           return
         setMessages(prev=>prev.map
-          (m=>data.message_ids.includes(m.id)?{...m,is_read:true,is_delivered:true}:m))
+          (m=>data.message_ids?.includes(m.id)?{...m,is_read:true,is_delivered:true}:m))
       }
       socket.on("messages_delivered",handleDelivered)
       socket.on("messages_read",handleRead)
@@ -90,6 +94,37 @@ export default function Chat({convoid,setconvoid,receiver,receivername,currentus
     socket.on("status",handlestatus)
     return()=>{socket.off("status",handlestatus)}
   },[receiver])
+
+  async function loadmoremessages(){
+    if(loadingMore || !hasMore)
+      return
+    const first=messages[0]
+    if(!first)
+      return
+    try{
+      setLoadingMore(true)
+      const oldis=chatbox.current.scrollHeight
+      const set=await axios.get(`http://localhost:8000/messages/${convoid}?before=${first.id}`,
+        {headers:{
+          Authorization:`Bearer ${localStorage.getItem("token")}`
+        }
+      })
+      const oldmess=set.data.messages
+      if(oldmess.length===0){
+        setHasMore(false)
+        return
+      }
+      setMessages(prev=>[...oldmess,...prev])
+      setTimeout(()=>{
+        const newheight=chatbox.current.scrollHeight
+        chatbox.current.scrollTop=newheight-oldis
+      },50)
+    }catch(err){
+         setError(err.response?.data?.detail ||"Failed to load messages")
+    }finally{
+      setLoadingMore(false)
+    }
+  }
 async function send() {
     if(!text.trim())
         return;
@@ -153,8 +188,17 @@ useEffect(()=>{
             {status?.is_online?<p className="online">Online</p>:<p className="offline">{status?.last_seen?`Last seen ${formatDate(status.last_seen)}`:"Offline"}</p>}
         </div>
       </div>
-      <div className='chat-box'>
+      <div className='chat-box' ref={chatbox}>
         {convostatus==="pending" &&(<div className='request-message'>Message request is sent.Waiting for {receivername} to accept.</div>)}
+        {hasMore && (
+        <div className="see-more-chat">
+
+        <button onClick={loadmoremessages}>
+        {loadingMore?"Loading...":"See more messages"}
+        </button>
+
+        </div>
+        )}
         {messages.length===0 &&(<p className='empty-chat'>No messages yet</p>)}
         {messages.map((m)=>(<div key={m.id} className={`chat-message ${m.sender_id===currentuserid ?"sent":"received"}`}>
           <div className='message-bubble'>

@@ -183,6 +183,8 @@ class Conversation(Base):
     user2_id=Column(Integer,ForeignKey("users.id"))
     deleted_by_user1_at=Column(DateTime,nullable=True)
     deleted_by_user2_at=Column(DateTime,nullable=True)
+    user1=relationship("Users",foreign_keys=[user1_id])
+    user2=relationship("Users",foreign_keys=[user2_id])
     __table_args__ = (
         Index("ix_conversation_user1","user1_id"),
         Index("ix_conversation_user2","user2_id")

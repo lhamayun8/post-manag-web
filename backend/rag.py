@@ -21,7 +21,7 @@ class RAG:
     def addpost(self,post_id:int,content:str,metadata:Dict):
         try:
             embedding=self.model.encode(content).tolist()
-            self.collection.upsert(ids=[f"post_{post_id}"],embeddings=[embedding],metadatas=[metadata],documents=[content])
+            self.collection.upsert(ids=[str(post_id)],embeddings=[embedding],metadatas=[metadata],documents=[content])
             return True
         except Exception as e:
             print(f"Error adding post:{e}")

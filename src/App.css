@@ -2628,6 +2628,18 @@ tr:hover {
   font-weight:bold;
 
 }
+.see-more-chat{
+text-align:center;
+padding:10px;
+}
+
+.see-more-chat button{
+background:grey;
+border:none; 
+padding:4px 15px;
+border-radius:20px;
+cursor:pointer;
+}
 .request-info{
     flex:1;
 }

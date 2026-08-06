@@ -7,11 +7,11 @@ from typing import List, Dict, Any, Optional
 import math
 
 class FeedService:
+    _cache=None
+    _cache_time=None
+    _cache_total=0
     def __init__(self,db: Session):
         self.db=db
-        self._cache=None
-        self._cache_time=None
-        self._cache_total=0
     def gettrendingfeed(self,limit:int=20,skip:int=0,days:int=7,search:Optional[str]=None):
         if skip==0 and not search and self._cache is not None:
             time=(datetime.utcnow()-self._cache_time).seconds
@@ -101,6 +101,6 @@ class FeedService:
         }
 
     def clear_cache(self):
-        self._cache = None
-        self._cache_time = None
-        self._cache_total = 0
+        FeedService._cache = None
+        FeedService._cache_time = None
+        FeedService._cache_total = 0

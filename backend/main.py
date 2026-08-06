@@ -5,6 +5,7 @@ from models import Users
 from routers import users,posts,admin,friends,sockets,connections,messages,chat,personal,suggestions
 from fastapi.middleware.cors import CORSMiddleware
 from routers.sockets import sio
+from scheduler import startscheduler
 app=FastAPI()
 Base.metadata.create_all(bind=engine)
 app.include_router(users.router)
@@ -28,6 +29,7 @@ def resetonlinestatus():
         db.commit()
     finally:
         db.close()
+    startscheduler()
 @app.get("/")
 def root():
     return {"message":"backend is running"}

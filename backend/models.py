@@ -26,6 +26,7 @@ class Users(Base):
     comment_count = Column(Integer, default=0, nullable=False)
     likes_given = Column(Integer, default=0, nullable=False)
     likes_received = Column(Integer, default=0, nullable=False)
+    interests=relationship("Interest",back_populates="user",cascade="all,delete")
     __table_args__ = (
         Index("ix_users_name","name"),
         Index("ix_users_verified","is_verified"),
@@ -189,3 +190,20 @@ class Conversation(Base):
         Index("ix_conversation_user1","user1_id"),
         Index("ix_conversation_user2","user2_id")
 )
+
+class Interest(Base):
+    __tablename__="user_interests"
+    id=Column(Integer,primary_key=True,index=True)
+    user_id=Column(Integer,ForeignKey("users.id",ondelete="CASCADE"),nullable=False)
+    interest=Column(String,nullable=False)
+    created_at=Column(DateTime,default=datetime.utcnow)
+    user=relationship("Users",back_populates="interests")
+    __table_args__ = (
+        Index("ix_user_interest_user", "user_id"),
+        Index("ix_user_interest_interest", "interest"),
+        UniqueConstraint(
+            "user_id",
+            "interest",
+            name="uq_user_interest"
+        )
+    )

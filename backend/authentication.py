@@ -26,7 +26,10 @@ def verifytoken(token:str):
 def getcurrentuser(authorization:str=Header(None)):
     if not authorization:
         raise HTTPException(status_code=401,detail="unauthorized")
-    token=authorization.split(" ")[1]
+    parts=authorization.split(" ")
+    if len(parts)!=2:
+        raise HTTPException(status_code=401,detail="Invalid authorization header")
+    token=parts[1]
     payload=verifytoken(token)
     if not payload:
         raise HTTPException(status_code=401,detail="invalid token")

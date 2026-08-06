@@ -131,3 +131,7 @@ class MessageResponse(BaseModel):
 class PaginatedPosts(BaseModel):
     total: int
     posts: list[Post]
+
+
+class Interest(BaseModel):
+    interests:list[str]

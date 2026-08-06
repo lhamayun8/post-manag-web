@@ -1,5 +1,5 @@
 from fastapi import APIRouter,HTTPException,Header,Depends,Query,BackgroundTasks
-from models import Posts,Users,Friendship,Like,Comment,Tags,Notifcation
+from models import Posts,Users,Friendship,Like,Comment,Tags,Notifcation,Interest
 from schema import PostCreate,Post,CommentCreate,PaginatedPosts
 from database import SessionLocal
 from authentication import verifytoken,getcurrentuser
@@ -168,6 +168,11 @@ def getfriends(currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)
     friends=(db.query(Users).join(Friendship,Friendship.friend_id==Users.id).filter(Friendship.user_id==currentuser.id).all())
     return[{"id":fr.id,"name":fr.name} for fr in friends]
 
+@router.get("/categories")
+def getcategories(db:Session=Depends(get_db)):
+    categories=(db.query(Posts.category).filter(Posts.category!=None,Posts.category!="").distinct().all())
+    return[c[0] for c in categories]
+
 @router.get("/{post_id}",response_model=Post)
 def getposts(post_id:int,db: Session = Depends(get_db),currentuser=Depends(getuserwtoken)):
     post=(db.query(Posts).options(joinedload(Posts.owner),selectinload(Posts.tagged_friends).joinedload(Tags.user)).filter(Posts.id==post_id).first())
@@ -318,3 +323,9 @@ def indexallposts(backgroundtasks:BackgroundTasks,db:Session=Depends(get_db),cur
         raise HTTPException(status_code=403,detail="Admin only")
     backgroundtasks.add_task(backgroundindexallposts)
     return {"message":"Indexed posts successfully"}
+
+
+@router.get("/interests")
+def get_interest(db:Session=Depends(get_db)):
+    category=(db.query(Posts.category).filter(Posts.category.isnot(None)).distinct().all())
+    return[mycategory[0] for mycategory in category]

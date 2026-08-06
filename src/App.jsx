@@ -24,6 +24,7 @@ import Notifications from "./components/Notifications";
 import { useState } from "react";
 import Messages from "./Pages/Messages";
 import Chatbot from "./components/Chatbot";
+import Interests from "./Pages/Interests";
 
 const publicroutes = [
   { path: "/", element: <Home></Home> },
@@ -47,7 +48,8 @@ const privateroutes = [
   { path: "/profile/changepass", element: <EditPassword></EditPassword> },
   { path: "/dashboard", element: <Dashboard></Dashboard> },
   {path:"/messages",element:<Messages></Messages>},
-  {path:"/friends",element:<Friends></Friends>}
+  {path:"/friends",element:<Friends></Friends>},
+  {path:"/interests",element:<Interests></Interests>}
 ];
 const adminroute = [
   { path: "/admin/dashboard", element: <Dashboard></Dashboard> },

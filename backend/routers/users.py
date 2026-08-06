@@ -1,8 +1,8 @@
 from fastapi import APIRouter,HTTPException,Depends,Query
-from models import Users,Notifcation
+from models import Users,Notifcation,Posts,Interest as InterestModel
 from database import SessionLocal
 from sqlalchemy.orm import Session
-from schema import UserCreate,User,UserLogin,UserEdit,ChangePass,VerifyCode,ResetPassword
+from schema import UserCreate,User,UserLogin,UserEdit,ChangePass,VerifyCode,ResetPassword,Interest as InterestSchema
 from authentication import hashpass,verifypass,createtoken,getcurrentuser
 from emailservice import sendemail
 from datetime import datetime,timedelta
@@ -240,3 +240,17 @@ def indexallusers(db:Session=Depends(get_db)):
             except Exception as e:
                 print(f"Error indexing user {user_id}: {e}")
     return{"indexed":count}
+
+@router.post("/interests")
+def saveinterest(data:InterestSchema,db:Session=Depends(get_db),currentuser=Depends(getcurrentuser)):
+    for item in data.interests:
+        interest=InterestModel(user_id=currentuser.id,interest=item)
+        db.add(interest)
+    db.commit()
+    return{"message":"Interest is saved"}
+
+
+@router.get("/interests")
+def getuserinterest(db:Session=Depends(get_db),currentuser=Depends(getcurrentuser)):
+    interests=db.query(InterestModel).filter(InterestModel.user_id==currentuser.id).all()
+    return[i.interest for i in interests]

@@ -258,7 +258,7 @@ export default function Dashboard() {
             
             {userHasMore && !userLoading && users.length > 0 && (
               <div className="see-more-container">
-                <button className="btn-btn-primary" onClick={loadMoreUsers}>
+                <button className="btn-btn-primary" onClick={loadMoreUsers} style={{ padding: "10px 30px", fontSize: "16px" }}>
                   Load More Users ({users.length} of {userTotal})
                 </button>
               </div>
@@ -328,8 +328,8 @@ export default function Dashboard() {
             {postLoading && <p className="loading-text">Loading more posts...</p>}
             
             {postHasMore && !postLoading && posts.length > 0 && (
-              <div className="see-more-container">
-                <button className="btn-btn-primary" onClick={loadMorePosts}>
+              <div style={{ textAlign: "center", margin: "2rem 0" }}>
+                <button className="btn-btn-primary" onClick={loadMorePosts} style={{ padding: "10px 30px", fontSize: "16px" }}>
                   Load More Posts ({posts.length} of {postTotal})
                 </button>
               </div>

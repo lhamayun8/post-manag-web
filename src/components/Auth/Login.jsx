@@ -23,8 +23,13 @@ export default function Login() {
       login(token, userdata);
       if (set.data.role === "admin") {
         navigate("/admin/dashboard");
-      } else {
-        navigate("/posts");
+        return;
+      }
+      const interest=await api.get("/users/interests",{headers:{Authorization:`Bearer ${token}`}})
+      if(interest.data.length===0){
+        navigate("/interests")
+      }else{
+        navigate("/posts")
       }
     } catch (err) {
       if(err.response?.status===422){

@@ -8,7 +8,7 @@ export default function ResetPassword() {
     const navigate=useNavigate()
     const[data,setData]=useState({code:"",new:""})
     const[error,setError]=useState("")
-    const email=(location.state?.email||"").tolowerCase()
+    const email=(location.state?.email||"").toLowerCase()
     const code=location.state?.code||""
     const closeerror=()=>{
     setError("")

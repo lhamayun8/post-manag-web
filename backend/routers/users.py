@@ -10,7 +10,7 @@ from rag import rag
 from fastapi import BackgroundTasks
 from sqlalchemy import or_
 import secrets
-
+from redisclient import setcache,getcache,deletecache
 router=APIRouter(prefix="/users",tags=["users"])
 
 def get_db():
@@ -115,10 +115,8 @@ async def forgotpassword(backgroundtasks:BackgroundTasks,email:str=Query(...),db
 async def resetpassword(data:ResetPassword,db:Session=Depends(get_db)):
     user=checkemail(data.email,db)
     if user.resetcode!=data.code:
-        db.close()
         raise HTTPException(status_code=400,detail="Invalid verification code")
     if user.resetcode_expiry is None or datetime.utcnow()>user.resetcode_expiry:
-        db.close()
         raise HTTPException(status_code=400,detail='Reset code is expired')
     user.password=hashpass(data.new_password)
     user.resetcode=None
@@ -182,7 +180,7 @@ def logout():
 @router.put("/edit")
 def editprofile(data:UserEdit,backgroundtask:BackgroundTasks,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
         user=get_user(currentuser.id,db)
-        if db.query(Users).filter(Users.name==data.name,Users.id!=currentuser.id).first():
+        if db.query(Users).filter(Users.name==data.name.strip().lower(),Users.id!=currentuser.id).first():
             db.close()
             raise HTTPException(status_code=400,detail="Username already exists. Choose a new username")
         user.name=data.name.strip().lower()

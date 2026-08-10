@@ -13,15 +13,19 @@ from feedservice import FeedService
 from redisclient import getcache,setcache,deletecache
 router=APIRouter(prefix="/posts",tags=["posts"])
 
-def post_response(post):
+def post_response(post,comments_limit=5):
+    likes=list(getattr(post,"likes",None) or [])
+    comments=list(getattr(post,"comments",None) or [])
+    comments=sorted(comments,key=lambda c:c.created_at,reverse=True)
+    comments_total=len(comments)
+    visible=comments[:comments_limit]
     return{"id":post.id,"title":post.title,"description":post.description,"category":post.category,"status":post.status,
            "image":post.image,"created_at":post.created_at.isoformat() if post.created_at else None,"published_at":post.published_at.isoformat() if post.published_at else None,"username":post.owner.name if post.owner else None,"owner_id":post.owner_id,"tagged_users":[{"id":tag.user.id,"name":tag.user.name} for tag in getattr(post,"tagged_friends",[]) if tag.user],
-           "likes_count":len(post.likes) if hasattr(post,'likes')else 0,
-           "comments_count":len(post.comments) if hasattr(post,'comments') else 0,
-           "recent_comments":[{"id":c.id,"content":c.content,"username":c.user.name if c.user else "unknown",
-                               "created_at":c.created_at.isoformat() if c.created_at else None,"user_id":c.user_id}
-                               for c in (post.comments[:3] if hasattr(post,'comments')else [])
-                                         ]}
+            "likes":{"count":len(likes),"users":[{"id":l.user.id,"username":l.user.name} for l in likes if l.user]},
+            "comments":[{"id":c.id,"content":c.content,"username":c.user.name if c.user else "unknown",
+                         "created_at":c.created_at,"user_id":c.user_id} for c in visible],
+            "comments_total":comments_total
+            }
 
 def get_db():
     db=SessionLocal()
@@ -135,6 +139,7 @@ def makepost(post:PostCreate,backgroundtasks:BackgroundTasks,currentuser=Depends
     owner_id=currentuser.id,
     published_at=datetime.utcnow() if post.status == "published" else None)
     db.add(newpost)
+    currentuser.post_count=(currentuser.post_count or 0)+1
     db.flush()
     friends=db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id.in_(post.tagged_users)).all()
     friend_ids={f.friend_id for f in friends}
@@ -153,23 +158,16 @@ def makepost(post:PostCreate,backgroundtasks:BackgroundTasks,currentuser=Depends
     
 @router.get("/",response_model=PaginatedPosts)
 def listposts(search:Optional[str]=Query(None),db:Session =Depends(get_db),skip:int=Query(0,ge=0),limit:int=Query(10,ge=1),currentuser=Depends(getuserwtoken)):
-    cachekey=f"posts:{search}:{skip}:{limit}"
-    cachedposts=getcache(cachekey)
-    if cachedposts:
-        print("Getting posts from Redis cache")
-        return cachedposts
-    
     query=(db.query(Posts).options( load_only(Posts.id,Posts.title,Posts.description,
-                                              Posts.category,Posts.status,Posts.image,Posts.owner_id,Posts.created_at,Posts.published_at),
-                                              joinedload(Posts.owner).load_only(Users.id,Users.name),selectinload(Posts.tagged_friends).joinedload(Tags.user).
-                                              load_only(Users.id,Users.name),
-                                              selectinload(Posts.likes),selectinload(Posts.comments).joinedload(Comment.user).load_only(Users.id,Users.name)).filter(Posts.status=="published").order_by(Posts.published_at.desc()))
+            Posts.category,Posts.status,Posts.image,Posts.owner_id,Posts.created_at,Posts.published_at),
+            joinedload(Posts.owner).load_only(Users.id,Users.name),selectinload(Posts.tagged_friends).joinedload(Tags.user).
+            load_only(Users.id,Users.name),selectinload(Posts.likes).joinedload(Like.user).load_only(Users.id,Users.name),
+            selectinload(Posts.comments).joinedload(Comment.user).load_only(Users.id,Users.name)).filter(Posts.status=="published").order_by(Posts.published_at.desc()))
     if search:
         query=query.filter(Posts.title.ilike(f"%{search}%"))
     total=query.count()
     posts=(query.offset(skip).limit(limit).all())
     res={"total":total,"skip":skip,"limit":limit,"has_more":skip+limit<total,"posts":[post_response(post) for post in posts]}
-    setcache(cachekey,res,expiry=300)
     return res
 
 
@@ -185,12 +183,7 @@ def getcategories(db:Session=Depends(get_db)):
 
 @router.get("/{post_id}",response_model=Post)
 def getposts(post_id:int,db: Session = Depends(get_db),currentuser=Depends(getuserwtoken)):
-    cachekey=f"post:{post_id}"
-    cachedpost=getcache(cachekey)
-    if cachedpost:
-        print("Getting post fom Redis")
-        return cachedpost
-    post=(db.query(Posts).options(joinedload(Posts.owner),selectinload(Posts.tagged_friends).joinedload(Tags.user)).filter(Posts.id==post_id).first())
+    post=(db.query(Posts).options(joinedload(Posts.owner),selectinload(Posts.tagged_friends).joinedload(Tags.user),selectinload(Posts.likes).joinedload(Like.user),selectinload(Posts.comments).joinedload(Comment.user)).filter(Posts.id==post_id).first())
     if not post:
         raise HTTPException(status_code=404,detail="post is not found")
     if post.status=="draft":
@@ -199,8 +192,6 @@ def getposts(post_id:int,db: Session = Depends(get_db),currentuser=Depends(getus
         if post.owner_id!=currentuser.id and currentuser.role!="admin":
             raise HTTPException(status_code=403,detail="This post is private")
     res=post_response(post)
-    if post.status=="published":
-        setcache(cachekey,res,expiry=300)
     return res
 
 
@@ -229,7 +220,7 @@ def editpost(post_id:int,post:PostCreate,currentuser=Depends(getcurrentuser),db:
                 db.bulk_save_objects(notifications)
             db.commit()
             deletecache("posts:*")
-            deletecache(f"posts:{post_id}")
+            deletecache(f"post:{post_id}")
             indexpost(dbpost.id)
             return post_response(dbpost)
         else:
@@ -242,11 +233,14 @@ def deletepost(post_id:int,backgroundtasks:BackgroundTasks,currentuser=Depends(g
             raise HTTPException(status_code=404,detail="POST NOT FOUND")
         if dbpost.owner_id!=currentuser.id and currentuser.role!="admin":
             raise HTTPException(status_code=403,detail="NOT ALLOWED TO DELETE POST")
+        owner=db.query(Users).filter(Users.id==dbpost.owner_id).first()
+        if owner and owner.post_count>0:
+                owner.post_count-=1
         backgroundtasks.add_task(deletefromrag,post_id)
         db.delete(dbpost)
         db.commit()
         deletecache("posts:*")
-        deletecache(f"posts:{post_id}")
+        deletecache(f"post:{post_id}")
         return{"message":"post is deleted"}
 
 @router.post("/{post_id}/like")
@@ -259,12 +253,16 @@ def likepost(post_id:int,currentuser=Depends(getcurrentuser),db: Session = Depen
         raise HTTPException(status_code=400,detail="Can not like this post again")
     like=Like(post_id=post_id,user_id=currentuser.id)
     db.add(like)
+    currentuser.likes_given=(currentuser.likes_given or 0)+1
+    owner=db.query(Users).join(Posts,Posts.owner_id==Users.id).filter(Posts.id==post_id).first()
+    if owner:
+        owner.likes_received=(owner.likes_received or 0)+1
     try:
         db.commit()
     except Exception:
         db.rollback()
     deletecache("posts:*")
-    deletecache(f"posts:{post_id}")
+    deletecache(f"post:{post_id}")
     return{"message":"Liked post successfully"}
 
 @router.delete("/{post_id}/like")
@@ -273,13 +271,18 @@ def unlikepost(post_id:int,currentuser=Depends(getcurrentuser),db: Session = Dep
     if not like:
         raise HTTPException(status_code=404,detail="No like found")
     db.delete(like)
+    if currentuser.likes_given>0:
+        currentuser.likes_given-=1
+    owner=db.query(Users).join(Posts,Posts.owner_id==Users.id).filter(Posts.id==post_id).first()
+    if owner and owner.likes_received>0:
+        owner.likes_received-=1
     try:
         db.commit()
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500,detail="Failed to remove like")
     deletecache("posts:*")
-    deletecache(f"posts:{post_id}")
+    deletecache(f"post:{post_id}")
     return{"message":"Like is removed successfully"}
 
 @router.get("/{post_id}/likes")
@@ -293,12 +296,13 @@ async def addcomment(comment:CommentCreate,post_id:int,backgroundtasks:Backgroun
     post=get_post(post_id,db)
     comment=Comment(content=comment.content,post_id=post_id,user_id=currentuser.id)
     db.add(comment)
+    currentuser.comment_count=(currentuser.comment_count or 0)+1
     if post.owner_id!=currentuser.id:
         db.add(Notifcation(user_id=post.owner_id,post_id=post_id,message=f"{currentuser.name} commented on your post"))
         backgroundtasks.add_task(sendcommentemail,post.owner.email,currentuser.name,post.title)
     db.commit()
     deletecache("posts:*")
-    deletecache(f"posts:{post_id}")
+    deletecache(f"post:{post_id}")
     db.refresh(comment)
     return{"id":comment.id,"content":comment.content,"user_id":comment.user_id}
 
@@ -321,13 +325,15 @@ def deletecomment(post_id:int,comment_id:int,backgroundtasks:BackgroundTasks,cur
     db.delete(comment)
     db.commit()
     deletecache("posts:*")
-    deletecache(f"posts:{post_id}")
+    deletecache(f"post:{post_id}")
     backgroundtasks.add_task(backgroundindexpost,post_id)
     return{"message":"Comment is deleted successfully"}
 
 @router.get("/user/{user_id}/posts")
 def userposts(user_id:int,db:Session=Depends(get_db),skip:int=Query(0,ge=0),limit:int=Query(10,ge=1,le=50)):
-    posts=(db.query(Posts).options(joinedload(Posts.owner),selectinload(Posts.tagged_friends).joinedload(Tags.user)).filter(Posts.owner_id==user_id,Posts.status=="published").order_by(Posts.created_at.desc()).offset(skip).limit(limit).all())
+    posts=(db.query(Posts).options(joinedload(Posts.owner),selectinload(Posts.tagged_friends).joinedload(Tags.user),
+                                       selectinload(Posts.likes).joinedload(Like.user),
+                                       selectinload(Posts.comments).joinedload(Comment.user)).filter(Posts.owner_id==user_id,Posts.status=="published").order_by(Posts.created_at.desc()).offset(skip).limit(limit).all())
     return{"posts":[post_response(post) for post in posts],"has_more":len(posts)==limit}
 
 def backgroundindexallposts():

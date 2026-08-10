@@ -2624,7 +2624,15 @@ tr:hover {
   flex:1;
 }
 
+.see-more-btn {
+    transition: all 0.2s ease;
+}
 
+.see-more-btn:hover {
+    background-color: white;
+    color: white;
+    border-color: white;
+}
 .request-card p {
 
   position:absolute;

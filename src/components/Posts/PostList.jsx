@@ -8,18 +8,17 @@ export default function PostList() {
   const[posts,setPost]=useState([])
   const[search,setSearch]=useState("")
   const[err,setError]=useState("")
-  const[likes,setLikes]=useState({})
   const[loading,setLoading]=useState(false)
   const[hasMore,setHasMore]=useState(true)
   const [page, setPage] = useState(0);
   const[total,setTotal]=useState(0)
-  const limit=10
-  const[comments,setComments]=useState({})
+  const limit=5
   const[newcomment,setnewComment]=useState({})
   const[showcomment,setshowcoomment]=useState({})
-  const[likeusers,setlikeusers]=useState({})
   const[showlikeusers,setshowlikeusers]=useState({})
   const[expandposts,setexpandedposts]=useState({})
+  const[commentsState,setCommentsState]=useState({})
+  const[commentLoading,setCommentLoading]=useState({})
   const navigate=useNavigate()
   const closeerror=()=>{
     setError("")
@@ -27,6 +26,18 @@ export default function PostList() {
   useEffect(() => {
     fetchPost(true);
   }, [search]);
+
+  const seedComments=(postList)=>{
+    setCommentsState(prev=>{
+      const next={...prev}
+      postList.forEach(p=>{
+        if(!next[p.id]){
+          next[p.id]={items:p.comments||[],total:p.comments_total??(p.comments?.length||0)}
+        }
+      })
+      return next
+    })
+  }
   const fetchPost=async (reset=true) => {
     if(loading)
       return
@@ -43,11 +54,9 @@ export default function PostList() {
         setPost(prev=>[...prev,...newpost])
         setPage(prev=>prev+1)
       }
+      seedComments(newpost)
       setHasMore(skip+limit<total)
-      newpost.forEach(post => {
-        alllikes(post.id)
-        getcomments(post.id)
-      });
+      setTotal(total)
     } catch (err) {
       setError(err.response?.data?.detail || "No published posts avaiable.");
     }finally{
@@ -59,19 +68,19 @@ export default function PostList() {
       fetchPost(false)
     }
   }
-  const alllikes=async(postid)=>{
+  const refreshpost=async(postid)=>{
     try{
-      const set=await api.get(`/posts/${postid}/likes`)
-      setLikes((prev)=>({...prev,[postid]:set.data.Likes}))
-      setlikeusers((prev)=>({...prev,[postid]:set.data.users}))
+      const set=await api.get(`/posts/${postid}`)
+      setPost(prev=>prev.map(p=>p.id===postid?{...p,likes:set.data.likes}:p))
     }catch(err){
-       setError(err.response?.data?.detail || "Can not load likes.");
+            setError(err.response?.data?.detail || "Failed to refresh posts");
     }
   }
+
   const likepost=async(postid)=>{
     try{
       await api.post(`/posts/${postid}/like`)
-      alllikes(postid)
+      refreshpost(postid)
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -83,7 +92,7 @@ export default function PostList() {
   const unlikepost=async(postid)=>{
     try{
       await api.delete(`/posts/${postid}/like`)
-      alllikes(postid)
+      refreshpost(postid)
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -92,25 +101,23 @@ export default function PostList() {
       setError(err.response?.data?.detail || "Can not unlike post.");
     }
   }
-  const getcomments=async(postid)=>{
-    try{
-      const set=await api.get(`/posts/${postid}/comments`)
-      setComments(prev=>({...prev,[postid]:set.data.comments})|| [])
-    }catch(err){
-      if(err.response?.status===401){
-        navigate("/login")
-        return;
-      }
-      setError(err.response?.data?.detail || "Can not get comments.");
-    }
-  }
   const addcomment=async(postid)=>{
     if(!newcomment[postid])
       return;
     try{
-      await api.post(`/posts/${postid}/comments`,{content:newcomment[postid]})
+      const set=await api.post(`/posts/${postid}/comments`,{content:newcomment[postid]})
+      const newc={
+        id:set.data.id,
+        content:set.data.content,
+        user_id:set.data.user_id,
+        username:user?.name||"You",
+        created_at:new Date().toISOString(),
+      }
+      setCommentsState(prev=>{
+        const cur=prev[postid]||{items:[],total:0}
+        return {...prev,[postid]:{items:[newc,...cur.items],total:cur.total+1}}
+      })
       setnewComment(prev=>({...prev,[postid]:""}))
-      getcomments(postid)
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -122,7 +129,12 @@ export default function PostList() {
   const deletecomment=async(postid,commentid)=>{
     try{
       await api.delete(`/posts/${postid}/comments/${commentid}`)
-      getcomments(postid)
+      setCommentsState(prev=>{
+        const cur=prev[postid]
+        if(!cur)
+          return prev
+        return {...prev,[postid]:{items:cur.items.filter(c=>c.id!==commentid),total:Math.max(0,cur.total-1)}}
+      })
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -131,11 +143,24 @@ export default function PostList() {
       setError(err.response?.data?.detail || "Can not delete comment.");
     }
   }
+  const loadmorecomments=async(postid)=>{
+    const cur=commentsState[postid]||{items:[],total:0}
+    setCommentLoading(prev=>({...prev,[postid]:true}))
+    try{
+      const set=await api.get(`/posts/${postid}/comments`,{params:{skip:cur.items.length,limit:5}})
+      setCommentsState(prev=>{
+        const existingIds=new Set(cur.items.map(c=>c.id))
+        const newones=set.data.comments.filter(c=>!existingIds.has(c.id))
+        return {...prev,[postid]:{items:[...cur.items,...newones],total:set.data.total}}
+      })
+    }catch(err){
+      setError(err.response?.data?.detail || "Can not load more comments.");
+    }finally{
+      setCommentLoading(prev=>({...prev,[postid]:false}))
+    }
+  }
   const togglecomments=(postid)=>{
     setshowcoomment(prev=>({...prev,[postid]:!prev[postid]}))
-    if(!comments[postid]){
-      getcomments(postid)
-    }
   }
   const toggledescription=(postid)=>{
     setexpandedposts((prev)=>({...prev,[postid]:!prev[postid]}))
@@ -168,7 +193,9 @@ export default function PostList() {
       </div>
         {posts.length===0?<p>No Published Posts</p>
         :
-        posts.map((post) => (
+        posts.map((post) => {
+          const comments=commentsState[post.id]||{items:post.comments||[],total:post.comments_total??(post.comments?.length||0)}
+          return(
           <div key={post.id} className="post-card">
             <h2>Title:  {post.title}</h2>
             {post.image && (
@@ -189,12 +216,12 @@ export default function PostList() {
                 )}</p>
               )}
                 <div className="likes-section">
-                  <p className="likes-count" onClick={()=>togglelikes(post.id)}>{likes[post.id]||0} Likes</p>
+                  <p className="likes-count" onClick={()=>togglelikes(post.id)}>{post.likes?.count||0} Likes</p>
                   {showlikeusers[post.id]&&(
                     <div className="likes-popup">{
-                      !likeusers[post.id] ||likeusers[post.id].length===0?<p>No likes yet</p>
+                      !post.likes?.users ||post.likes.users.length===0?<p>No likes yet</p>
                         :
-                        likeusers[post.id].map(person=>(
+                        post.likes.users.map(person=>(
                           <div className="likes-user" key={person.id}>
                             <div className="avatar-small">{
                               person.username.charAt(0).toUpperCase()}
@@ -214,9 +241,9 @@ export default function PostList() {
                 {showcomment[post.id] &&(
                   <div className="comments-box">
                     <h3>Comments</h3>
-                {comments[post.id]?.length===0?
+                {comments.items.length===0?
                 <p>No comments yet</p>:
-                comments[post.id]?.map(comment=>(
+                comments.items.map(comment=>(
                 <div className="comment-card" key={comment.id}>
                   <div className="comment-avatar">
                   {comment.username.charAt(0).toUpperCase()}
@@ -231,13 +258,25 @@ export default function PostList() {
                 </div>
                 </div>
                 ))}
+                {comments.items.length<comments.total && (
+                  <div>
+                    <button
+                      type="button"
+                      className="see-more-btn"
+                      onClick={()=>loadmorecomments(post.id)}
+                      disabled={!!commentLoading[post.id]}
+                    >
+                      {commentLoading[post.id]?"Loading...":`See more comments (${comments.total-comments.items.length})`}
+                    </button>
+                  </div>
+                )}
                 <div className="write-comment"><textarea placeholder="Comment..." value={newcomment[post.id]||""} onChange={(e)=>setnewComment(prev=>({...prev,[post.id]:e.target.value}))}></textarea>
                 <button className="btn btn-primary" onClick={()=>addcomment(post.id)}>Post Comment</button>
                 </div>
             </div>
             )} 
     </div> 
-  ))}
+  )})}
   {loading &&<p style={{textAlign:"center"}}>Loading</p>}
   {hasMore && !loading && (
     <div style={{ textAlign: "center", margin: "2rem 0" }}>

@@ -4,51 +4,50 @@ import api from "../../services/api";
 import { useAuth } from "../../context/Authcontext";
 
 export default function PostInfo() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [post, setPost] = useState(null);
-  const [err, setError] = useState("");
-  const { user } = useAuth();
+  const{id}=useParams()
+  const navigate=useNavigate();
+  const[post,setPost]=useState(null);
+  const[err,setError]=useState("")
+  const{user}=useAuth()
   const[message,setMessage]=useState("")
-  const[comments,setComments]=useState([])
-  const[likes,setLikes]=useState(0)
-  const [likeusers,setLikeusers]=useState([]);
-  const [liked,setLiked]=useState(false);
-  const [newcomment,setNewcomment]=useState("");
+  const[newcomment,setNewcomment]=useState("");
   const[showlikeusers,setshowlikeusers]=useState(false)
+  const[comments,setComments]=useState({items:[],total:0})
+  const[commentLoading,setCommentLoading]=useState(false)
   const closeerror=()=>{
     setError("")
   }
   const closemessage=()=>{
       setMessage("")
   }
-
-  useEffect(() => {
-    const fetchPost = async () => {
+  useEffect(()=>{
+    const fetchPost=async()=>{
       try {
-        const set = await api.get(`/posts/${id}`);
+        const set=await api.get(`/posts/${id}`);
         setPost(set.data);
-        const comset=await api.get(`/posts/${id}/comments`)
-        setComments(comset.data.comments)
-        const likeset=await api.get(`/posts/${id}/likes`)
-        setLikes(likeset.data.Likes)
-        setLikeusers(likeset.data.users)
-        if(user){
-          setLiked(likeset.data.users.some(person=>person.id===user.id))
-      }
+        setComments({items:set.data.comments||[],total:set.data.comments_total??(set.data.comments?.length||0)})
       } catch (err) {
         setError(err.response?.data?.detail || "Failed to load posts");
       }
-    };
-    fetchPost();
-  }, [id,user]);
+    }
+    fetchPost()
+  }, [id])
+
+  const refreshlikes=async()=>{
+    try{
+      const set=await api.get(`/posts/${id}`)
+      setPost(prev=>prev?{...prev,likes:set.data.likes}:prev)
+    }catch(err){
+      setError(err.response?.data?.detail || "Failed to refresh post")
+    }
+  }
+
+  const liked=!!(user && post?.likes?.users?.some(person=>person.id===user.id))
+
   const likepost=async()=>{
     try{
       await api.post(`/posts/${id}/like`)
-      setLiked(true)
-      const set=await api.get(`/posts/${id}/likes`)
-      setLikes(set.data.Likes)
-      setLikeusers(set.data.users)
+      refreshlikes()
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -67,10 +66,7 @@ export default function PostInfo() {
   const unlikepost=async()=>{
     try{
       await api.delete(`/posts/${id}/like`)
-      setLiked(false)
-      const set=await api.get(`/posts/${id}/likes`)
-      setLikes(set.data.Likes)
-      setLikeusers(set.data.users)
+      refreshlikes()
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -83,9 +79,15 @@ export default function PostInfo() {
     if(!newcomment.trim())
       return;
     try{
-      await api.post(`/posts/${id}/comments`,{content:newcomment})
-      const set=await api.get(`/posts/${id}/comments`)
-      setComments(set.data.comments)
+      const set=await api.post(`/posts/${id}/comments`,{content:newcomment})
+      const newc={
+        id:set.data.id,
+        content:set.data.content,
+        user_id:set.data.user_id,
+        username:user?.name||"You",
+        created_at:new Date().toISOString(),
+      }
+      setComments(prev=>({items:[newc,...prev.items],total:prev.total+1}))
       setNewcomment("")
     }catch(err){
       if(err.response?.status===401){
@@ -98,7 +100,7 @@ export default function PostInfo() {
   const deletecomment=async(commentid)=>{
     try{
       await api.delete(`/posts/${id}/comments/${commentid}`)
-      setComments(comments.filter(c=>c.id!==commentid))
+      setComments(prev=>({items:prev.items.filter(c=>c.id!==commentid),total:Math.max(0,prev.total-1)}))
     }catch(err){
       if(err.response?.status===401){
         navigate("/login")
@@ -107,7 +109,22 @@ export default function PostInfo() {
       setError(err.response?.data?.detail || "Can not delete comment.");
     }
   }
-  const deletePost = async () => {
+  const loadmorecomments=async()=>{
+    setCommentLoading(true)
+    try{
+      const set=await api.get(`/posts/${id}/comments`,{params:{skip:comments.items.length,limit:5}})
+      setComments(prev=>{
+        const existingIds=new Set(prev.items.map(c=>c.id))
+        const newones=set.data.comments.filter(c=>!existingIds.has(c.id))
+        return {items:[...prev.items,...newones],total:set.data.total}
+      })
+    }catch(err){
+      setError(err.response?.data?.detail || "Can not load more comments.");
+    }finally{
+      setCommentLoading(false)
+    }
+  }
+  const deletePost=async()=>{
     try{
       await api.delete(`/posts/${id}`);
       setMessage("Post is deleted successfully!!")
@@ -141,12 +158,12 @@ export default function PostInfo() {
         {post.category &&(<p>Category is {post.category}</p>)}
         <p><strong>Status:</strong>{post.status}</p>
         <div className="likes-section">
-            <p className="likes-count" onClick={togglelikes}>{likes} Likes</p>
+            <p className="likes-count" onClick={togglelikes}>{post.likes?.count||0} Likes</p>
             {showlikeusers && (<div className="likes-popup">
             {
-            likeusers.length===0 ?
+            (post.likes?.users?.length||0)===0 ?
             <p>No likes yet</p>:
-            likeusers.map(person=>(
+            post.likes.users.map(person=>(
               <div className="likes-user" key={person.id}>
             <div className="avatar-small">{person.username?.charAt(0).toUpperCase()}</div>
             <span>{person.username}</span>
@@ -158,8 +175,8 @@ export default function PostInfo() {
             </div>
               <div className="comments-box">
               <h3>Comments</h3>
-              {comments.length===0 ?<p>No comments yet</p>:
-              comments.map(comment=>(
+              {comments.items.length===0 ?<p>No comments yet</p>:
+              comments.items.map(comment=>(
               <div className="comment-card" key={comment.id}>
                  <div className="comment-avatar">
                   {comment.username?.charAt(0).toUpperCase()}
@@ -176,6 +193,18 @@ export default function PostInfo() {
             </div>
             ))
           }
+              {comments.items.length<comments.total && (
+                <div className="see-more-container">
+                  <button
+                    type="button"
+                    className="see-more-btn"
+                    onClick={loadmorecomments}
+                    disabled={commentLoading}
+                  >
+                    {commentLoading?"Loading...":`See more comments (${comments.total-comments.items.length})`}
+                  </button>
+                </div>
+              )}
               <textarea placeholder="Comment..." value={newcomment} onChange={(e)=>setNewcomment(e.target.value)}/>
               <button className="btn btn-primary" onClick={addcomment}>
               Post Comment</button>

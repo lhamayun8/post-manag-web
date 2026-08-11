@@ -135,11 +135,26 @@ export default function PostInfo() {
         setError(err.response?.data?.detail ||"Failed to delete post")
       }
   };
-      const formatDate=(date)=>{
-    return new Date(date+"Z").toLocaleString("en-PK",{
-      timeZone:"Asia/Karachi",dateStyle:"medium",timeStyle:"short"
-    })
+   const formatDate = (date) => {
+  if (!date) return "Unknown date";
+
+  const normalizedDate =
+    typeof date === "string" && !date.endsWith("Z") && !date.includes("+")
+      ? date + "Z"
+      : date;
+
+  const parsedDate = new Date(normalizedDate);
+
+  if (isNaN(parsedDate.getTime())) {
+    return "Invalid Date";
   }
+
+  return parsedDate.toLocaleString("en-PK", {
+    timeZone: "Asia/Karachi",
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+};
   if (err) return <div>{err}</div>;
   if (!post) return <div>Loading.</div>;
   const edit = user && (user.id === post.owner_id || user.role === "admin");
@@ -157,6 +172,7 @@ export default function PostInfo() {
         )}
         {post.category &&(<p>Category is {post.category}</p>)}
         <p><strong>Status:</strong>{post.status}</p>
+        <div className="profile-posts">
         <div className="likes-section">
             <p className="likes-count" onClick={togglelikes}>{post.likes?.count||0} Likes</p>
             {showlikeusers && (<div className="likes-popup">
@@ -205,9 +221,11 @@ export default function PostInfo() {
                   </button>
                 </div>
               )}
+              <div className="write-comment">
               <textarea placeholder="Comment..." value={newcomment} onChange={(e)=>setNewcomment(e.target.value)}/>
               <button className="btn btn-primary" onClick={addcomment}>
               Post Comment</button>
+              </div>
         </div>
       </div>
       <div className="post-actions">
@@ -227,6 +245,7 @@ export default function PostInfo() {
         <button onClick={closeerror}>X</button>
         </div>
         )}  
+    </div>
     </div>
   );
 }

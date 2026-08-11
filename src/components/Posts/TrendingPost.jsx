@@ -182,14 +182,26 @@ export default function PostList() {
   const toggledescription = (postid) => {
     setExpandedPosts(prev => ({ ...prev, [postid]: !prev[postid] }))
   };
+const formatDate = (date) => {
+  if (!date) return "Unknown date";
 
-  const formatDate = (date) => {
-    return new Date(date + "Z").toLocaleString("en-PK", {
-      timeZone: "Asia/Karachi",
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  };
+  const normalizedDate =
+    typeof date === "string" && !date.endsWith("Z") && !date.includes("+")
+      ? date + "Z"
+      : date;
+
+  const parsedDate = new Date(normalizedDate);
+
+  if (isNaN(parsedDate.getTime())) {
+    return "Invalid Date";
+  }
+
+  return parsedDate.toLocaleString("en-PK", {
+    timeZone: "Asia/Karachi",
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+};
   const handleRefresh=()=>{
   setPosts([])
   setPage(0)
@@ -208,6 +220,7 @@ export default function PostList() {
   return (
     <div className="posts-container">
       <h2>Trending Posts</h2>
+      <div className="profile-posts">
       {loading && posts.length === 0 ? (
         <p style={{ textAlign: "center" }}>Loading trending posts...</p>
       ) : posts.length === 0 ? (
@@ -406,6 +419,7 @@ export default function PostList() {
           <button onClick={closeerror}>X</button>
         </div>
       )}
+    </div>
     </div>
   );
 }

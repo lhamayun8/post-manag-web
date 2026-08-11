@@ -165,11 +165,26 @@ export default function PostList() {
   const toggledescription=(postid)=>{
     setexpandedposts((prev)=>({...prev,[postid]:!prev[postid]}))
   }
-    const formatDate=(date)=>{
-    return new Date(date+"Z").toLocaleString("en-PK",{
-      timeZone:"Asia/Karachi",dateStyle:"medium",timeStyle:"short"
-    })
+ const formatDate = (date) => {
+  if (!date) return "Unknown date";
+
+  const normalizedDate =
+    typeof date === "string" && !date.endsWith("Z") && !date.includes("+")
+      ? date + "Z"
+      : date;
+
+  const parsedDate = new Date(normalizedDate);
+
+  if (isNaN(parsedDate.getTime())) {
+    return "Invalid Date";
   }
+
+  return parsedDate.toLocaleString("en-PK", {
+    timeZone: "Asia/Karachi",
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+};
   const togglelikes=(postid)=>{
     if(!user){
       navigate("/login")
@@ -191,6 +206,7 @@ export default function PostList() {
           Search
         </button>
       </div>
+      <div className="profile-posts">
         {posts.length===0?<p>No Published Posts</p>
         :
         posts.map((post) => {
@@ -296,6 +312,7 @@ export default function PostList() {
         <button onClick={closeerror}>X</button>
         </div>
         )}  
+  </div>
   </div>
   )
 }

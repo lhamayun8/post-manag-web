@@ -169,6 +169,7 @@ export default function Chatbot({ user }) {
                         {messages.length===0 && (
                             <div className="welcome-message">
                                 <div className="welcome-icon">👋</div>
+                                <div className='welcome-text'>
                                 <h4>Hello! I'm your AI Assistant</h4>
                                 <p>I can help you with:</p>
                                 <ul>
@@ -177,6 +178,7 @@ export default function Chatbot({ user }) {
                                     <li>Answering questions</li>
                                     <li>Getting recommendations</li>
                                 </ul>
+                            </div>
                             </div>
                         )}
                         {messages.map((msg, index) => (

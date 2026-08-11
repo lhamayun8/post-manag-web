@@ -184,7 +184,7 @@ export default function Profile() {
                     <p>Published:{formatDate(post.published_at ||post.created_at)}</p>
                     {post.category &&(<p>Category:{post.category}</p>)}
                     <div className="likes-section">
-                      <p className="likes-count" onClick={()=>togglelikes(post.id)}>{likes[post.id]||0} Likes</p>
+                      <p className="likes-count" onClick={()=>togglelikes(post.id)}>♥ {likes[post.id]||0} Likes</p>
                       {showlikeusers[post.id] &&(
                         <div className="likes-popup">
                           {!likeusers[post.id]||likeusers[post.id].length===0?(

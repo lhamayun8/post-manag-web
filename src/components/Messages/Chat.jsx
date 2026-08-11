@@ -10,7 +10,7 @@ export default function Chat({convoid,setconvoid,receiver,receivername,currentus
     const[deletemessage,setdeletemessage]=useState(null)
     const[showdelete,setshowdelete]=useState(false)
     const[convostatus,setconvostatus]=useState("")
-    const[hasMore,setHasMore]=useState(true)
+    const[hasMore,setHasMore]=useState(false)
     const[loadingMore,setLoadingMore]=useState(false)
     const chatbox=useRef(null)
       const closeerror=()=>{
@@ -25,7 +25,7 @@ export default function Chat({convoid,setconvoid,receiver,receivername,currentus
             headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}})
           console.log(set.data)
           setMessages(set.data.messages||[])
-          setHasMore(true)
+          setHasMore(set.data.has_more ?? false)
           setStatus(set.data.user_status)
           setconvostatus(set.data.conversation_status)
           await axios.put(`http://localhost:8000/messages/${convoid}/read`,{},{
@@ -109,15 +109,18 @@ export default function Chat({convoid,setconvoid,receiver,receivername,currentus
           Authorization:`Bearer ${localStorage.getItem("token")}`
         }
       })
-      const oldmess=set.data.messages
+      const oldmess=set.data.messages || []
       if(oldmess.length===0){
         setHasMore(false)
         return
       }
       setMessages(prev=>[...oldmess,...prev])
+      setHasMore(set.data.has_more ?? false)
       setTimeout(()=>{
+        if(chatbox.current){
         const newheight=chatbox.current.scrollHeight
         chatbox.current.scrollTop=newheight-oldis
+        }
       },50)
     }catch(err){
          setError(err.response?.data?.detail ||"Failed to load messages")

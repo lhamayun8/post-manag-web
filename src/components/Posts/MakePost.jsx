@@ -65,7 +65,7 @@ export default function MakePost({setTab}) {
   }
   };
   return (
-    <div className="auth-container create-post-form">
+    <div className="create-post-form">
       <h2>Create new post</h2>
       <form onSubmit={handleSubmit}>
         <div className="create-post-fields">

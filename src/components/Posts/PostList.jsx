@@ -216,7 +216,7 @@ export default function PostList() {
                 )}</p>
               )}
                 <div className="likes-section">
-                  <p className="likes-count" onClick={()=>togglelikes(post.id)}>{post.likes?.count||0} Likes</p>
+                  <p className="likes-count" onClick={()=>togglelikes(post.id)}> ♥ {post.likes?.count||0} Likes</p>
                   {showlikeusers[post.id]&&(
                     <div className="likes-popup">{
                       !post.likes?.users ||post.likes.users.length===0?<p>No likes yet</p>

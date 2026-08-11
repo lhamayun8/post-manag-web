@@ -50,7 +50,7 @@ export default function MyPosts({setTab,setEditId}) {
     setexpandedposts((prev)=>({...prev,[postid]:!prev[postid]}))
   }
   return (
-    <div className='posts-section'>
+    <div className='posts-container'>
       <h2>My Posts</h2>
       {posts.length===0?(
         <p>You have not created any posts yet.</p>

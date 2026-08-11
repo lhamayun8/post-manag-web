@@ -161,10 +161,12 @@ def getmessages(conversation_id:int,limit:int=50,before:int=None,currentuser=Dep
         query=query.filter(Message.created_at>end)
     if before:
         query=query.filter(Message.id<before)
-    messages=query.order_by(Message.id.desc()).limit(limit).all()
+    messages=query.order_by(Message.id.desc()).limit(limit+1).all()
+    has_more = len(messages) > limit
+    messages = messages[:limit]
     messages.reverse()
     return {
-        "messages":messages,"conversation_status":conversation.status,"user_status":{
+        "messages":messages,"has_more":has_more,"conversation_status":conversation.status,"user_status":{
             "id":otheruser.id,"name":otheruser.name,"is_online":otheruser.is_online,"last_seen":otheruser.last_seen
         }
     }

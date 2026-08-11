@@ -45,7 +45,7 @@ export default function MyDrafts({setTab,setEditId}) {
       }
   };
   return (
-    <div className='posts-section'>
+    <div className='posts-container'>
         <h2>My Drafts</h2>
         {drafts.length===0?(
             <p>You do not have any drafts yet.</p>

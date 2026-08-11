@@ -51,7 +51,7 @@ export default function PostList() {
           search: search || undefined,
           limit: limit,
           skip: skip,
-          days: 7,
+          days: 30,
           refresh:forcerefresh
         } 
       });
@@ -281,7 +281,7 @@ export default function PostList() {
             
             <div className="likes-section">
               <p className="likes-count" onClick={() => togglelikes(post.id)}>
-                {post.likes?.count || 0} Likes
+                ♥ {post.likes?.count || 0} Likes
               </p>
               {showlikeusers[post.id] && (
                 <div className="likes-popup">

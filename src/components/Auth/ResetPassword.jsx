@@ -35,7 +35,7 @@ export default function ResetPassword() {
       }
     }
   return (
-    <div className='auth-container'>
+    <div className='forgot-container'>
       <h2>Reset Password</h2>
       <form onSubmit={handleSubmit}>
         <input placeholder='new password' type="password" value={data.new} onChange={(e)=>setData({...data,new:e.target.value})}></input>

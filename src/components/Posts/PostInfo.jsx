@@ -145,7 +145,7 @@ export default function PostInfo() {
   const edit = user && (user.id === post.owner_id || user.role === "admin");
   return (
     <div className="auth-container">
-      <h2>{post.title}</h2>
+      <h2>Title: {post.title}</h2>
       <div className="post-details">
         <p>{post.description}</p>
         {post.image && (

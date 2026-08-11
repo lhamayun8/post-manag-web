@@ -34,7 +34,7 @@ export default function VerifyNewPass() {
         setMessage("")
         try{
             await api.post("/users/forgot-password",null,{params:{email}})
-            setMessage("New verification codeis sent to your email")
+            setMessage("New verification code is sent to your email")
         }catch(err){
             setError(error.response?.data?.detail || "could not send new code")
         }
@@ -42,7 +42,7 @@ export default function VerifyNewPass() {
     }
     
   return (
-    <div className='auth-container'>
+    <div className='verify-container'>
         <h2>Verify code</h2>
         <form onSubmit={handleSubmit}>
             <input placeholder='Verification code' value={code} onChange={(e)=>setCode(e.target.value)}></input>

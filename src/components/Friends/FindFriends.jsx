@@ -72,7 +72,14 @@ export default function FindFriends() {
   return (
     <div className='friends-section'>
         <h2>Find Friends</h2>
-        <input type="text" placeholder='Search' className='search-input' value={search} onChange={(e)=>setSearch(e.target.value)}></input>
+        <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search Users"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        ></input>
+      </div>
         <div className='users-list'>
             {list.length===0 ?(<p>No users exist.</p>):(
                 list.map((user)=>(

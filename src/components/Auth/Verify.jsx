@@ -41,7 +41,7 @@ export default function Verify() {
 
     }
   return (
-    <div className='auth-container'>
+    <div className='verify-container'>
         <h2>Verify Email</h2>
         <p>A verification code is sent to <br/>{email}</p>
         <form onSubmit={handleSubmit}>

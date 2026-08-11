@@ -72,7 +72,7 @@ export default function Inbox({setTab,setconvoid,setreceivername,setReceiver}) {
       {messages.length===0 &&<p>No conversation yet!!</p>}
       {messages.map((chat)=>(
         <div key={chat.conversation_id} className='conversation' onClick={()=>{setconvoid(chat.conversation_id);setReceiver(chat.user_id);setreceivername(chat.user_name);setTab("chat")}}>
-            <div className="avatar">{chat.user_name?chat.user_name[0].toUpperCase():"?"}</div>
+            <div className="avatar-small">{chat.user_name?chat.user_name[0].toUpperCase():"?"}</div>
             <div className='conversation-content'>
             <div className='conversation-info'>
               <h4>Username: {chat.user_name}</h4>

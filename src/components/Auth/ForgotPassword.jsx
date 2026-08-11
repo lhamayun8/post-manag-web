@@ -23,7 +23,7 @@ export default function ForgotPassword() {
         }
     }
   return (
-    <div className='auth-container'>
+    <div className='forgot-container'>
         <h2>Forgot Password</h2>
         <form onSubmit={handleSubmit}>
             <input type="email" placeholder='email' value={email} onChange={(e)=>setEmail(e.target.value)}></input>

@@ -46,7 +46,7 @@ export default function SearchUsers({setTab,setconvoid,setReceiver,setreceiverna
         }
 }
   return (
-    <div>
+    <div className='new-message-container'>
       <h2>New Message</h2>
       <input placeholder='search user...' value={search} onChange={e=>setSearch(e.target.value)}></input>
       {loading &&<p>Searching...</p>}

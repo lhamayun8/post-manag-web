@@ -164,8 +164,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="admin-dashboard-page">
-      <div className="admin-sidebar">
+    <div className="friends-page">
+      <div className="friends-sidebar">
         <button 
           className={tab === "users" ? "active" : ""} 
           onClick={() => setTab("users")}
@@ -288,7 +288,6 @@ export default function Dashboard() {
                 <thead>
                   <tr>
                     <th>Title</th>
-                    <th>Description</th>
                     <th>Status</th>
                     <th>By</th>
                     <th>Action</th>
@@ -299,11 +298,6 @@ export default function Dashboard() {
                     <tr key={post.id}>
                       <td>
                         <strong>{post.title}</strong>
-                      </td>
-                      <td>
-                        {post.description && post.description.length > 100 
-                          ? `${post.description.slice(0, 100)}...` 
-                          : post.description}
                       </td>
                       <td>
                         <span className={`status-badge ${post.status}`}>

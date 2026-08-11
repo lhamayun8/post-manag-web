@@ -15,7 +15,7 @@ class FeedService:
     def __init__(self,db: Session):
         self.db=db
 
-    def gettrendingfeed(self,limit:int=20,skip:int=0,days:int=30,search:Optional[str]=None):
+    def gettrendingfeed(self,limit:int=20,skip:int=0,days=30,search:Optional[str]=None):
         cachekey=f"feed:trending:{days}"
         cacheable=skip==0 and not search
         if cacheable:

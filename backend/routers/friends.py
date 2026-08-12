@@ -6,6 +6,7 @@ from authentication import getcurrentuser
 from routers.sockets import notify_user
 from rag import rag
 from typing import Optional
+from sqlalchemy import func
 
 
 router=APIRouter(prefix="/friends",tags=["friends"])
@@ -84,8 +85,11 @@ def get_user(user_id:int,db:Session=Depends(get_db)):
     return user
 
 @router.get("/users")
-def users(limit:int=Query(10,ge=1,le=50),skip:int=Query(0,ge=0),currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+def users(search:Optional[str]=None,limit:int=Query(10,ge=1,le=50),skip:int=Query(0,ge=0),currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
     query=db.query(Users).filter(Users.id!=currentuser.id,Users.is_verified == True,Users.is_active==True)
+    if search and search.strip():
+        searchterm=search.strip().lower()
+        query=query.filter((func.lower(Users.name).contains(searchterm)) |(func.lower(Users.email).contains(searchterm)))
     total=query.count()
     users=query.offset(skip).limit(limit).all()
     if not users:

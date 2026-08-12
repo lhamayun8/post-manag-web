@@ -5,6 +5,7 @@ import { useAuth } from "../../context/Authcontext";
 
 export default function PostInfo() {
   const{id}=useParams()
+  const[expandposts,setexpandedposts]=useState({})
   const navigate=useNavigate();
   const[post,setPost]=useState(null);
   const[err,setError]=useState("")
@@ -162,7 +163,12 @@ export default function PostInfo() {
     <div className="auth-container">
       <h2>Title: {post.title}</h2>
       <div className="post-details">
-        <p>{post.description}</p>
+       {post.description &&(<p><strong>Description:</strong>{""}{expandposts[post.id]||post.description.length<=150?post.description:`${post.description.slice(0,150)}...`}{post.description.length>150 &&(
+                  <>
+                  {" "}
+                  <button type="button" className="see-more-btn" onClick={()=>toggledescription(post.id)}>{expandposts[post.id]?"see less":"see more"}</button></>
+                )}</p>
+              )}
         {post.image && (
           <div className="image-container">
             {" "}
@@ -170,7 +176,7 @@ export default function PostInfo() {
             <img src={`data:image/jpeg;base64,${post.image}`} alt="post"></img>
           </div>
         )}
-        {post.category &&(<p>Category is {post.category}</p>)}
+        {post.category &&(<p><strong>Category:</strong> {post.category}</p>)}
         <p><strong>Status:</strong>{post.status}</p>
         <div className="profile-posts">
         <div className="likes-section">

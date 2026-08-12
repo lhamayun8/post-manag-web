@@ -363,5 +363,6 @@ def indexallposts(backgroundtasks:BackgroundTasks,db:Session=Depends(get_db),cur
 
 @router.get("/interests")
 def get_interest(db:Session=Depends(get_db)):
-    category=(db.query(Posts.category).filter(Posts.category.isnot(None)).distinct().all())
+    category=(db.query(func.lower(func.trim(Posts.category))).filter(Posts.category.isnot(None)).filter(func.trim(Posts.category) != "").distinct().order_by(func.lower(func.trim(Posts.category))).all())
     return[mycategory[0] for mycategory in category]
+  

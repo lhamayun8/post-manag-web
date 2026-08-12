@@ -21,7 +21,7 @@ export default function FindFriends() {
         setLoading(true)
         try{
             const skip=reset?0:page*limit
-            const set=await api.get("/friends/users",{params:{limit:limit,skip:skip}})
+            const set=await api.get("/friends/users",{params:{search:search.trim(),limit:limit,skip:skip}})
             const userdata=set.data.users || []
             const total=set.data.total ||0
             if(reset){
@@ -32,7 +32,7 @@ export default function FindFriends() {
                 setPage(prev=>prev+1)
             }
             setTotal(total)
-            setHasMore(skip+limit<total)
+            setHasMore(set.data.has_more)
         }catch(err){
             setError(err.response?.data?.detail ||"failed to load users");
         }finally{
@@ -45,10 +45,6 @@ export default function FindFriends() {
         }, 500)
         return () => clearTimeout(timer)
     }, [search])
-
-     useEffect(() => {
-        getUsers(true)
-    }, [])
 
     const loadMore = () => {
         if (!loading && hasMore) {
@@ -65,10 +61,10 @@ export default function FindFriends() {
             setMessage("")
         },1500)
         }catch(err){
-            setError(error.response?.data?.detail ||"Unable to send request");
+            setError(err.response?.data?.detail ||"Unable to send request");
         }
     }
-    const list=users.filter((user)=>user.name?.toLowerCase().includes(search.toLowerCase()))
+    const list=users
   return (
     <div className='friends-section'>
         <h2>Find Friends</h2>

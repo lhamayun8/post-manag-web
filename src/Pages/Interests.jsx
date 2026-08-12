@@ -17,12 +17,6 @@ export default function Interests() {
       navigate("/posts")
   }
 
-
-    useEffect(()=>{
-        fetchcategory()
-        fetchinterest()
-    },[])
-
     const fetchcategory=async()=>{
         try{
             const set=await api.get("/posts/categories")
@@ -43,21 +37,29 @@ export default function Interests() {
     useEffect(()=>{
         const loaddata=async()=>{
             const categories=await api.get("/posts/categories")
-            setCategories(categories.data)
-            const interests=awaitapi.get("/users/interests")
-            if(interests.data.length>0){
+            const normalizedCategories=[...new Set(categories.data.filter(category =>
+                category && category.trim() !== "")
+                .map(category =>category.trim().toLowerCase())
+                .filter(category => category !== "2"))]
+            setCategories(normalizedCategories)
+            const interests=await api.get("/users/interests")
+            const normalizedInterests = [...new Set(interests.data
+                .filter(item =>item &&item.trim() !== "")
+                .map(item =>item.trim().toLowerCase()))]
+            if(normalizedInterests.length>0){
                 navigate("/posts")
                 return;
             }
-            setInterest(interests.data)
+            setInterest(normalizedInterests)
         }
         loaddata()
-    },[])
+    },[navigate])
     const toggleinterest=(category)=>{
-        if(interest.includes(category)){
-            setInterest(interest.filter(item=>item!==category))
+        const normalizedCategory = category.trim().toLowerCase()
+        if(interest.includes(normalizedCategory)){
+            setInterest(interest.filter(item=>item!==normalizedCategory))
         }else{
-            setInterest([...interest,category])
+            setInterest([...interest,normalizedCategory])
         }
     }
     const saveinterest=async()=>{

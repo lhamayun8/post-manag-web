@@ -1,40 +1,49 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import api from '../../services/api'
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
 
 export default function ForgotPassword() {
-    const[email,setEmail]=useState("")
-    const[error,setError]=useState("")
-    const navigate=useNavigate()
-    const closeerror=()=>{
-    setError("")
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const closeerror = () => {
+    setError("");
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    const loweremail = email.trim().toLowerCase();
+    try {
+      await api.post("/users/forgot-password", null, {
+        params: {
+          email: loweremail,
+        },
+      });
+      navigate("/verify-new-pass", { state: { email: loweremail } });
+    } catch (err) {
+      setError(
+        err.response?.data?.detail || "Request for reset password failed",
+      );
     }
-    const handleSubmit=async(e)=>{
-        e.preventDefault()
-        setError("")
-        const loweremail=email.trim().toLowerCase()
-        try{
-            await api.post("/users/forgot-password",null,{params:{
-                email:loweremail
-            }})
-            navigate("/verify-new-pass",{state:{email:loweremail}})
-        }catch(err){
-            setError(err.response?.data?.detail || "Request for reset password failed")
-        }
-    }
+  };
   return (
-    <div className='forgot-container'>
-        <h2>Forgot Password</h2>
-        <form onSubmit={handleSubmit}>
-            <input type="email" placeholder='email' value={email} onChange={(e)=>setEmail(e.target.value)}></input>
-            <button>Send code</button>
-        </form>
-          {error && (
+    <div className="forgot-container">
+      <h2>Forgot Password</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        ></input>
+        <button>Send code</button>
+      </form>
+      {error && (
         <div className="error-box">
-        <span>{error}</span>
-        <button onClick={closeerror}>X</button>
+          <span>{error}</span>
+          <button onClick={closeerror}>X</button>
         </div>
-        )}  
+      )}
     </div>
-  )
+  );
 }

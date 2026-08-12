@@ -2,23 +2,23 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 
-export default function EditPost({id,setTab}) {
+export default function EditPost({ id, setTab }) {
   const [err, setError] = useState("");
-  const[message,setMessage]=useState("")
-  const[friends,setFriends]=useState([])
-      const closeerror=()=>{
-    setError("")
-    }
-    const closemessage=()=>{
-      setMessage("")
-    }
+  const [message, setMessage] = useState("");
+  const [friends, setFriends] = useState([]);
+  const closeerror = () => {
+    setError("");
+  };
+  const closemessage = () => {
+    setMessage("");
+  };
   const [data, setData] = useState({
     title: "",
     description: "",
     category: "",
     status: "draft",
     image: "",
-    tagged_users:[]
+    tagged_users: [],
   });
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,18 +29,18 @@ export default function EditPost({id,setTab}) {
     }
     try {
       await api.put(`/posts/${id}`, data);
-      setMessage("Post is updated successfully!!")
-      setTimeout(()=>{
-         setTab("myposts")
-      },1000)
+      setMessage("Post is updated successfully!!");
+      setTimeout(() => {
+        setTab("myposts");
+      }, 1000);
     } catch (err) {
-      if(err.response?.status===422){
-        setError("Post can not be made or updated without a post title")
-      }else{
-      setError(err.response?.data?.detail ||"Failed to load your posts")
-      console.error(err);
+      if (err.response?.status === 422) {
+        setError("Post can not be made or updated without a post title");
+      } else {
+        setError(err.response?.data?.detail || "Failed to load your posts");
+        console.error(err);
+      }
     }
-  }
   };
   const handleimagechange = (e) => {
     const file = e.target.files[0];
@@ -60,15 +60,15 @@ export default function EditPost({id,setTab}) {
     }
   };
   useEffect(() => {
-    const fecthfriends=async()=>{
-      try{
-        const set=await api.get("/posts/friends")
-        setFriends(set.data)
-      }catch(err){
-        setError(err.response?.data?.detail ||"Failed to fetch tagged users")
+    const fecthfriends = async () => {
+      try {
+        const set = await api.get("/posts/friends");
+        setFriends(set.data);
+      } catch (err) {
+        setError(err.response?.data?.detail || "Failed to fetch tagged users");
       }
-    }
-    fecthfriends()
+    };
+    fecthfriends();
     const fetchpost = async () => {
       try {
         const set = await api.get(`/posts/${id}`);
@@ -78,11 +78,13 @@ export default function EditPost({id,setTab}) {
           category: set.data.category,
           status: set.data.status,
           image: set.data.image || "",
-          tagged_users:set.data?set.data.tagged_users.map(tag=>tag.id):[]
+          tagged_users: set.data
+            ? set.data.tagged_users.map((tag) => tag.id)
+            : [],
         });
       } catch (err) {
-        setError(err.response?.data?.detail ||"Failed to load post")
-    }
+        setError(err.response?.data?.detail || "Failed to load post");
+      }
     };
     fetchpost();
   }, [id]);
@@ -115,16 +117,34 @@ export default function EditPost({id,setTab}) {
             placeholder="Example:Technology,etc"
           ></input>
           <label htmlFor="status">Post Status</label>
-          <select id="status" name="status" value={data.status} onChange={handleChange}>
+          <select
+            id="status"
+            name="status"
+            value={data.status}
+            onChange={handleChange}
+          >
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
           <label>Tag Friends</label>
-          <select multiple value={data.tagged_users} onChange={(e)=>setData({...data,tagged_users:[...e.target.selectedOptions].map(option=>Number(option.value))})}
-          >{friends.map(friend=>(
-          <option key={friend.id} value={friend.id}>
-            {friend.name}</option>
-          ))}</select>
+          <select
+            multiple
+            value={data.tagged_users}
+            onChange={(e) =>
+              setData({
+                ...data,
+                tagged_users: [...e.target.selectedOptions].map((option) =>
+                  Number(option.value),
+                ),
+              })
+            }
+          >
+            {friends.map((friend) => (
+              <option key={friend.id} value={friend.id}>
+                {friend.name}
+              </option>
+            ))}
+          </select>
           {data.image && (
             <div className="image-preview">
               <p>New Image</p>
@@ -142,20 +162,22 @@ export default function EditPost({id,setTab}) {
             onChange={handleimagechange}
           ></input>
         </div>
-        <button type="submit" className="btn btn-primary">Update</button>
+        <button type="submit" className="btn btn-primary">
+          Update
+        </button>
       </form>
-        {message && (
+      {message && (
         <div className="message-box">
-        <span>{message}</span>
-        <button onClick={closemessage}>X</button>
+          <span>{message}</span>
+          <button onClick={closemessage}>X</button>
         </div>
-        )}
-         {err && (
+      )}
+      {err && (
         <div className="error-box">
-        <span>{err}</span>
-        <button onClick={closeerror}>X</button>
+          <span>{err}</span>
+          <button onClick={closeerror}>X</button>
         </div>
-        )}  
+      )}
     </div>
   );
 }

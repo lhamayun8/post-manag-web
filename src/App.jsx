@@ -1,5 +1,11 @@
 import "./App.css";
-import { Link, Route, BrowserRouter as Router, Routes,useLocation } from "react-router-dom";
+import {
+  Link,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
 import Logout from "./components/Auth/Logout";
@@ -30,11 +36,11 @@ const publicroutes = [
   { path: "/", element: <Home></Home> },
   { path: "/login", element: <Login></Login> },
   { path: "/register", element: <Register></Register> },
-  {path:"/verify",element:<Verify></Verify>},
-  {path:"/forgot-password",element:<ForgotPassword></ForgotPassword>},
-  {path:"/verify-new-pass",element:<VerifyNewPass></VerifyNewPass>},
-  {path:"/reset-password",element:<ResetPassword></ResetPassword>},
-  { path: "/posts", element: <Posts></Posts>},
+  { path: "/verify", element: <Verify></Verify> },
+  { path: "/forgot-password", element: <ForgotPassword></ForgotPassword> },
+  { path: "/verify-new-pass", element: <VerifyNewPass></VerifyNewPass> },
+  { path: "/reset-password", element: <ResetPassword></ResetPassword> },
+  { path: "/posts", element: <Posts></Posts> },
   { path: "/posts/:id", element: <PostInfo></PostInfo> },
 ];
 const privateroutes = [
@@ -42,27 +48,26 @@ const privateroutes = [
   { path: "/posts/new", element: <MakePost></MakePost> },
   { path: "/posts/edit/:id", element: <EditPost></EditPost> },
   { path: "/profile", element: <Profile></Profile> },
-  {path:"/profile/:id",element:<Profile></Profile>},
-  {path:"/users/notifications",element:<Notifications></Notifications>},
+  { path: "/profile/:id", element: <Profile></Profile> },
+  { path: "/users/notifications", element: <Notifications></Notifications> },
   { path: "/profile/edit", element: <EditProfile></EditProfile> },
   { path: "/profile/changepass", element: <EditPassword></EditPassword> },
   { path: "/dashboard", element: <Dashboard></Dashboard> },
-  {path:"/messages",element:<Messages></Messages>},
-  {path:"/friends",element:<Friends></Friends>},
-  {path:"/interests",element:<Interests></Interests>}
+  { path: "/messages", element: <Messages></Messages> },
+  { path: "/friends", element: <Friends></Friends> },
+  { path: "/interests", element: <Interests></Interests> },
 ];
 const adminroute = [
   { path: "/admin/dashboard", element: <Dashboard></Dashboard> },
 ];
 
 function AppContent() {
-  const { user,loading } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
   if (loading) {
-  return <div>Loading...</div>;
-}
+    return <div>Loading...</div>;
+  }
   return (
-    
     <>
       <nav className="navbar">
         <div className="navpost">
@@ -76,7 +81,7 @@ function AppContent() {
               <Link to="/friends">Friends</Link>
               <Link to="/profile">Profile</Link>
               <Link to="/messages">Messages</Link>
-              <Notifications/>
+              <Notifications />
               {<Chatbot user={user} />}
               {user?.role === "admin" && (
                 <Link to="/admin/dashboard">Admin Dashboard</Link>

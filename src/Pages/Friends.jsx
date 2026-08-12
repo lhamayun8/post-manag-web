@@ -1,36 +1,30 @@
-import React, { useEffect, useState } from 'react'
-import api from '../services/api'
-import MyFriends from '../components/Friends/MyFriends'
-import FindFriends from '../components/Friends/FindFriends'
-import SentRequests from '../components/Friends/SentRequests'
-import FriendRequests from '../components/Friends/FriendRequests'
-import Suggestions from '../components/Friends/Suggestions'
+import React, { useEffect, useState } from "react";
+import api from "../services/api";
+import MyFriends from "../components/Friends/MyFriends";
+import FindFriends from "../components/Friends/FindFriends";
+import SentRequests from "../components/Friends/SentRequests";
+import FriendRequests from "../components/Friends/FriendRequests";
+import Suggestions from "../components/Friends/Suggestions";
 export default function Friends() {
-    const[tab,setTab]=useState("find")
+  const [tab, setTab] = useState("find");
   return (
-    <div className='friends-page'>
-        <div className='friends-sidebar'>
-            <button onClick={()=>setTab("find")}>Find Friends</button>
-            <button onClick={()=>setTab("sent")}>Sent requests</button>
-            <button onClick={()=>setTab("requests")}>Friend Requests</button>
-            <button onClick={()=>setTab("friends")}>My Friends</button>
-            <button onClick={()=>setTab("suggestions")}>Friend Suggestions</button>
-        </div>
-        <div className='friends-content'>
-            {
-                tab==="find" &&<FindFriends></FindFriends>
-            }
-            {
-                tab==="sent" &&<SentRequests></SentRequests>
-            }
-            {
-                tab==="requests"&&<FriendRequests></FriendRequests>
-            }
-            {
-                tab==="friends"&&<MyFriends></MyFriends>
-            }
-            {tab==="suggestions" &&<Suggestions></Suggestions>}
-        </div>
+    <div className="friends-page">
+      <div className="friends-sidebar">
+        <button onClick={() => setTab("find")}>Find Friends</button>
+        <button onClick={() => setTab("sent")}>Sent requests</button>
+        <button onClick={() => setTab("requests")}>Friend Requests</button>
+        <button onClick={() => setTab("friends")}>My Friends</button>
+        <button onClick={() => setTab("suggestions")}>
+          Friend Suggestions
+        </button>
+      </div>
+      <div className="friends-content">
+        {tab === "find" && <FindFriends></FindFriends>}
+        {tab === "sent" && <SentRequests></SentRequests>}
+        {tab === "requests" && <FriendRequests></FriendRequests>}
+        {tab === "friends" && <MyFriends></MyFriends>}
+        {tab === "suggestions" && <Suggestions></Suggestions>}
+      </div>
     </div>
-    )
+  );
 }

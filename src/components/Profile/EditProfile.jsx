@@ -2,23 +2,23 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
-export default function EditProfile({setTab}) {
-  const [data, setData] = useState({ name: "",email:""});
+export default function EditProfile({ setTab }) {
+  const [data, setData] = useState({ name: "", email: "" });
   const [err, setError] = useState("");
-  const[message,setMessage]=useState("")
-      const closeerror=()=>{
-    setError("")
-    }
-    const closemessage=()=>{
-      setMessage("")
-    }
+  const [message, setMessage] = useState("");
+  const closeerror = () => {
+    setError("");
+  };
+  const closemessage = () => {
+    setMessage("");
+  };
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const set = await api.get("/users/me");
-        setData({ name: set.data.name,email:set.data.email});
+        setData({ name: set.data.name, email: set.data.email });
       } catch (err) {
-        setError(err.response?.data?.detail ||"Failed to load your profile");
+        setError(err.response?.data?.detail || "Failed to load your profile");
       }
     };
     fetchProfile();
@@ -28,25 +28,25 @@ export default function EditProfile({setTab}) {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("")
-    setMessage("")
-    const set = { name: data.name};
+    setError("");
+    setMessage("");
+    const set = { name: data.name };
     try {
       await api.put("/users/edit", set, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      setMessage("Profile successfully updated!!")
-      setTimeout(()=>{
-        setMessage("")
-        setTab("profile")
-      },1000)
+      setMessage("Profile successfully updated!!");
+      setTimeout(() => {
+        setMessage("");
+        setTab("profile");
+      }, 1000);
     } catch (err) {
-      if(err.response?.status===422){
-            setError("You must enter a name.")
-      }else{
-      setError(err.response?.data?.detail ||"Can not update profile.");
+      if (err.response?.status === 422) {
+        setError("You must enter a name.");
+      } else {
+        setError(err.response?.data?.detail || "Can not update profile.");
+      }
     }
-  }
   };
 
   return (
@@ -55,9 +55,7 @@ export default function EditProfile({setTab}) {
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Email</label>
-          <input
-           value={data.email} disabled       
-          ></input>
+          <input value={data.email} disabled></input>
           <label>Name</label>
           <input
             name="name"
@@ -68,18 +66,18 @@ export default function EditProfile({setTab}) {
         </div>
         <button type="submit">Save changes</button>
       </form>
-                    {message && (
+      {message && (
         <div className="message-box">
-        <span>{message}</span>
-        <button onClick={closemessage}>X</button>
+          <span>{message}</span>
+          <button onClick={closemessage}>X</button>
         </div>
-        )}
-         {err && (
+      )}
+      {err && (
         <div className="error-box">
-        <span>{err}</span>
-        <button onClick={closeerror}>X</button>
+          <span>{err}</span>
+          <button onClick={closeerror}>X</button>
         </div>
-        )}  
+      )}
     </div>
   );
 }

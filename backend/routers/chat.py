@@ -22,7 +22,7 @@ class State(TypedDict):
     context:Optional[Dict]
     results:Optional[List]
 
-llm = ChatOllama(model="llama3.1",temperature=0.3)
+llm = ChatOllama(model="llama3.1",temperature=0.3, base_url="http://host.docker.internal:11434")
 memory=MemorySaver()
 llm_with_tools=llm
 

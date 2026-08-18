@@ -63,8 +63,8 @@ async def getrag(state:State)->Dict:
         return{"messages":[],"results":[]}
     ragcontext="Here are the relevant posts from platform\n\n"
     for i,post in enumerate(same,1):
-        ragcontext+=f"{i}.{post['content'][:300]}\n"
-        ragcontext+=f"(Relevance:{post['score']:.2f})\n\n"
+        ragcontext+=f"{i}. Title: {post.get('title','')}\n   Content: {post['content'][:300]}\n"
+        ragcontext+=f"   (Relevance:{post['score']:.2f})\n\n"
     return{"messages":[SystemMessage(content=ragcontext)],"results":same}
     
 async def model(state:State):
@@ -95,11 +95,9 @@ PRIVACY:
 - Never access or discuss private messages. Say: "I cannot access private messages for privacy reasons."
 """
 )
-    hassystem=any(isinstance(msg,SystemMessage) for msg in messages)
-    if not hassystem:
-        messages.insert(0,system_prompt)
-    result=await llm_with_tools.ainvoke(messages)
-    return{"messages":[result]}
+    full_messages = [system_prompt] + [m for m in messages]
+    result = await llm_with_tools.ainvoke(full_messages)
+    return {"messages":[result]}
 
 graph=StateGraph(State)
 graph.add_node("rag",getrag)

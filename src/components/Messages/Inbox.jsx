@@ -19,7 +19,7 @@ export default function Messages({
   const headers = { Authorization: `Bearer ${token}` };
   const loadInbox = async () => {
     try {
-      const set = await axios.get("/messages/inbox", {
+      const set = await api.get("/messages/inbox", {
         headers,
       });
       const chats = Array.isArray(set.data) ? set.data : [];
@@ -80,7 +80,7 @@ export default function Messages({
 
   const deleteInbox = async (conversationId) => {
     try {
-      await axios.delete(
+      await api.delete(
         `/messages/inbox/${conversationId}`,
         { headers },
       );

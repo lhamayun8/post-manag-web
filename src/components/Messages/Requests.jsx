@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import api from "../../services/api";
 export default function Requests({
   setTab,
   setconvoid,
@@ -14,7 +15,7 @@ export default function Requests({
   };
   async function loadRequests() {
     try {
-      const set = await axios.get("/messages/requests", {
+      const set = await api.get("/messages/requests", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setRequests(set.data);
@@ -24,7 +25,7 @@ export default function Requests({
   }
   async function acceptrequest(id) {
     try {
-      await axios.put(
+      await api.put(
         `/messages/${id}/accept`,
         {},
         {
@@ -41,7 +42,7 @@ export default function Requests({
   }
   async function declinerequest(id) {
     try {
-      axios.put(
+      api.put(
         `/messages/${id}/decline`,
         {},
         {

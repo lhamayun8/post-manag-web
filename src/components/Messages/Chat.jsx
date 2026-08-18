@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import socket from "../../socket";
+import api from "../../services/api";
 export default function Chat({
   convoid,
   setconvoid,
@@ -26,7 +27,7 @@ export default function Chat({
     if (!convoid) return;
     async function loadmessages() {
       try {
-        const set = await axios.get(
+        const set = await api.get(
           `/messages/${convoid}`,
           {
             headers: {
@@ -39,7 +40,7 @@ export default function Chat({
         setHasMore(set.data.has_more ?? false);
         setStatus(set.data.user_status);
         setconvostatus(set.data.conversation_status);
-        await axios.put(
+        await api.put(
           `/messages/${convoid}/read`,
           {},
           {
@@ -148,7 +149,7 @@ export default function Chat({
     try {
       setLoadingMore(true);
       const oldis = chatbox.current.scrollHeight;
-      const set = await axios.get(
+      const set = await api.get(
         `/messages/${convoid}?before=${first.id}`,
         {
           headers: {
@@ -182,7 +183,7 @@ export default function Chat({
       return;
     }
     try {
-      const set = await axios.post(
+      const set = await api.post(
         "/messages/",
         { receiver_id: receiver, content: text },
         {
@@ -209,7 +210,7 @@ export default function Chat({
   }
   async function deleteforme() {
     try {
-      await axios.put(
+      await api.put(
         `/messages/message/${deletemessage.id}/deleteforme`,
         {},
         {
@@ -225,7 +226,7 @@ export default function Chat({
   }
   async function deleteforeveryone() {
     try {
-      await axios.delete(
+      await api.delete(
         `/messages/message/${deletemessage.id}/everyone`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

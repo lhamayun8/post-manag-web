@@ -42,7 +42,7 @@ export default function Requests({
   }
   async function declinerequest(id) {
     try {
-      api.put(
+      await api.put(
         `/messages/${id}/decline`,
         {},
         {

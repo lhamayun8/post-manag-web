@@ -61,7 +61,7 @@ async def sendmessage(data:MessageCreate,currentuser=Depends(getcurrentuser),db:
 
 @router.get("/inbox")
 def myconversation(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    conversations=(db.query(Conversation).options(joinedload(Conversation.user1),joinedload(Conversation.user2)).filter(or_(Conversation.user1_id==currentuser.id,Conversation.user2_id==currentuser.id)).all())
+    conversations=(db.query(Conversation).options(joinedload(Conversation.user1),joinedload(Conversation.user2)).filter(or_(Conversation.user1_id==currentuser.id,Conversation.user2_id==currentuser.id),Conversation.status!="declined").all())
     result=[]
     un=dict(db.query(Message.convo_id,func.count(Message.id)).filter(Message.receiver_id==currentuser.id,Message.is_read==False).group_by(Message.convo_id).all())
     for convo in conversations:

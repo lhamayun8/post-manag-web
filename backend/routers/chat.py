@@ -16,7 +16,7 @@ import re
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from typing import TypedDict, Annotated, Optional, List, Dict
-
+from langchain_core.messages import AIMessage
 load_dotenv()
 router=APIRouter(prefix="/chat",tags=["chat"])
 class State(TypedDict):
@@ -69,38 +69,32 @@ async def getrag(state:State)->Dict:
     
 async def model(state:State):
     messages=state.get("messages",[])
-    user_id=state.get("user_id")
+    results=state.get("results",[])
+    last_human = next((m.content for m in reversed(messages) if isinstance(m,HumanMessage)), "")
+    is_greeting = last_human.lower().strip() in ("hi","hello","hey","how are you","good morning","good evening","good afternoon")
+
+    if not is_greeting and not results:
+        return {"messages":[AIMessage(content="I couldn't find anything related to that in PostManager.")]}
     system_prompt = SystemMessage(
-        content="""You are PostManager AI assistant - a helpful guide for the PostManager social platform.
+    content="""You are PostManager AI assistant for the PostManager social platform ONLY.
 
-            IMPORTANT RULES:
+STRICT SCOPE:
+- You must NEVER answer using general world knowledge (law, history, science, coding, etc.), even if you know the answer.
+- You may ONLY discuss: PostManager posts, users, friendships, profiles, and platform features.
+- If the user's question is unrelated to the PostManager platform, or if no RAG context was provided for a data question, respond ONLY with:
+  "I couldn't find anything related to that in PostManager."
+- Do not explain concepts, definitions, or laws even if asked directly.
 
-            1. FOR GREETINGS AND CASUAL CONVERSATION:
-            - Respond naturally and warmly
-            - Do NOT use RAG context
-            - Examples:
-                User: hi → Assistant: Hello! How can I help you with PostManager today?
-                User: how are you? → Assistant: I'm doing great! How can I assist you?
+FOR GREETINGS:
+- Respond naturally and briefly.
 
-            2. FOR QUESTIONS ABOUT PLATFORM DATA:
-            - ONLY use the provided RAG context
-            - Never invent posts, users, or content
-            - If RAG context doesn't contain the answer, say:
-                "I couldn't find anything related to that in PostManager."
+FOR PLATFORM DATA QUESTIONS:
+- ONLY use the provided RAG context. Never invent posts, users, or content.
 
-            3. RESPONSE FORMAT:
-            - For profile questions: Show user info clearly
-            - For posts: Show title, author, likes, comments
-            - For friends: List friends with names
-            - Be concise but informative
-
-            4. PRIVACY:
-            - NEVER access or discuss private messages
-            - If asked about messages, say: "I cannot access private messages for privacy reasons."
-
-            Remember: You are a helpful assistant for the PostManager platform!
-            """
-                )
+PRIVACY:
+- Never access or discuss private messages. Say: "I cannot access private messages for privacy reasons."
+"""
+)
     hassystem=any(isinstance(msg,SystemMessage) for msg in messages)
     if not hassystem:
         messages.insert(0,system_prompt)

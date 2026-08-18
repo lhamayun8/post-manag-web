@@ -13,6 +13,9 @@ from database import SessionLocal
 from models import Posts, Users, Friendship, Conversation, Message, Notifcation
 from rag import rag
 import re
+from dotenv import load_dotenv
+from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import TypedDict, Annotated, Optional, List, Dict
 
 load_dotenv()
 router=APIRouter(prefix="/chat",tags=["chat"])
@@ -22,7 +25,7 @@ class State(TypedDict):
     context:Optional[Dict]
     results:Optional[List]
 
-llm = ChatOllama(model="llama3.1",temperature=0.3, base_url="http://host.docker.internal:11434")
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
 memory=MemorySaver()
 llm_with_tools=llm
 

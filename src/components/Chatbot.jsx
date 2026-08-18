@@ -9,6 +9,7 @@ export default function Chatbot({ user }) {
   const messagesEndRef = useRef(null);
   const chatWindowRef = useRef(null);
   const [error, setError] = useState();
+  const API_URL = "https://exquisite-empathy-production-97e7.up.railway.app";
   const toggleChat = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
@@ -47,7 +48,8 @@ export default function Chatbot({ user }) {
     setInput("");
     setIsLoading(true);
     try {
-      let url = `/chat/stream/${encodeURIComponent(input)}`;
+      
+let url = `${API_URL}/chat/stream/${encodeURIComponent(input)}`;
       const params = new URLSearchParams();
       if (user?.id) {
         params.append("user_id", user.id);
@@ -133,7 +135,7 @@ export default function Chatbot({ user }) {
           }
         }
       }
-    } catch (error) {
+    } catch (err) {
       setError(err.response?.data?.detail || "Can not send message.");
       setMessages((prev) => [
         ...prev,

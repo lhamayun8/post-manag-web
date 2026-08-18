@@ -25,7 +25,7 @@ export default function SentRequests() {
     <div className="friends-section">
       <h2>Sent Requests</h2>
       {requests.length === 0 ? (
-        <p>No pending requests!!</p>
+        <p>No sent requests!!</p>
       ) : (
         <div className="users-list">
           {requests.map((request) => (

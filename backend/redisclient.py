@@ -1,16 +1,17 @@
 import os
 import redis
 
-REDIS_URL = os.getenv("REDIS_URL")
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
-if not REDIS_URL:
-    raise RuntimeError("REDIS_URL is not set")
-
-redisclient = redis.from_url(
-    REDIS_URL,
+redisclient = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    password=REDIS_PASSWORD,
     decode_responses=True,
-    socket_connect_timeout=2,
-    socket_timeout=2,
+    socket_connect_timeout=1,
+    socket_timeout=1,
 )
 
 def getcache(key):

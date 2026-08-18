@@ -20,3 +20,4 @@ pillow
 langgraph
 langchain-core
 apscheduler
+langchain-google-genai

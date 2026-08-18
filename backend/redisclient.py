@@ -1,22 +1,41 @@
-import redis 
-import json
+import os
+import redis
 
-redisclient=redis.Redis(host="172.22.43.66",port=6379,decode_responses=True)
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 
-def setcache(key,value,expiry=300):
-    redisclient.set(key,json.dumps(value),ex=expiry)
+redisclient = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    decode_responses=True,
+    socket_connect_timeout=2,
+    socket_timeout=2,
+)
+
 
 def getcache(key):
-    data=redisclient.get(key)
-    if data:
-        return json.loads(data)
-    return None
+    try:
+        return redisclient.get(key)
+    except Exception as e:
+        print(f"Redis GET failed: {e}")
+        return None
+
+
+def setcache(key, value, expire=300):
+    try:
+        redisclient.set(key, value, ex=expire)
+    except Exception as e:
+        print(f"Redis SET failed: {e}")
+
 
 def deletecache(key):
-    keys=redisclient.keys(key)
-    if keys:
-        redisclient.delete(*keys)
+    try:
+        keys = redisclient.keys(key)
 
-if __name__ == "__main__":
-    setcache("test", {"message": "hello"})
-    print(getcache("test"))
+        if keys:
+            redisclient.delete(*keys)
+
+        print(f"Redis cache deleted: {key}")
+
+    except Exception as e:
+        print(f"Redis DELETE failed for {key}: {e}")

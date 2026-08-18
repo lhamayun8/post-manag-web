@@ -22,7 +22,7 @@ export default function SearchUsers({
       }
       setLoading(true);
       axios
-        .get(`http://localhost:8000/messages/search?find=${search}`, {
+        .get(`/messages/search?find=${search}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         })
         .then((set) => setusers(set.data))
@@ -34,7 +34,7 @@ export default function SearchUsers({
 
   async function startchat(user) {
     try {
-      const set = await axios.get("http://localhost:8000/messages/inbox", {
+      const set = await axios.get("/messages/inbox", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

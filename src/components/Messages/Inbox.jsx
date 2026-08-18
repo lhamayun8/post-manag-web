@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import socket from "../../socket";
+import api from "../../services/api";
 
 export default function Messages({
   setTab,
@@ -18,7 +19,7 @@ export default function Messages({
   const headers = { Authorization: `Bearer ${token}` };
   const loadInbox = async () => {
     try {
-      const set = await axios.get("http://localhost:8000/messages/inbox", {
+      const set = await axios.get("/messages/inbox", {
         headers,
       });
       const chats = Array.isArray(set.data) ? set.data : [];
@@ -39,7 +40,7 @@ export default function Messages({
       }
       try {
         setLoadingSearch(true);
-        const set = await axios.get("http://localhost:8000/messages/search", {
+        const set = await axios.get("/messages/search", {
           params: { find: search.trim() },
           headers,
         });
@@ -54,7 +55,7 @@ export default function Messages({
   }, [search]);
   const startChat = async (user) => {
     try {
-      const set = await axios.get("http://localhost:8000/messages/inbox", {
+      const set = await axios.get("/messages/inbox", {
         headers,
       });
       const existingChat = set.data.find((chat) => chat.user_id === user.id);
@@ -80,7 +81,7 @@ export default function Messages({
   const deleteInbox = async (conversationId) => {
     try {
       await axios.delete(
-        `http://localhost:8000/messages/inbox/${conversationId}`,
+        `/messages/inbox/${conversationId}`,
         { headers },
       );
       setMessages((prev) =>

@@ -27,7 +27,7 @@ export default function Chat({
     async function loadmessages() {
       try {
         const set = await axios.get(
-          `http://localhost:8000/messages/${convoid}`,
+          `/messages/${convoid}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -40,7 +40,7 @@ export default function Chat({
         setStatus(set.data.user_status);
         setconvostatus(set.data.conversation_status);
         await axios.put(
-          `http://localhost:8000/messages/${convoid}/read`,
+          `/messages/${convoid}/read`,
           {},
           {
             headers: {
@@ -149,7 +149,7 @@ export default function Chat({
       setLoadingMore(true);
       const oldis = chatbox.current.scrollHeight;
       const set = await axios.get(
-        `http://localhost:8000/messages/${convoid}?before=${first.id}`,
+        `/messages/${convoid}?before=${first.id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -183,7 +183,7 @@ export default function Chat({
     }
     try {
       const set = await axios.post(
-        "http://localhost:8000/messages/",
+        "/messages/",
         { receiver_id: receiver, content: text },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -210,7 +210,7 @@ export default function Chat({
   async function deleteforme() {
     try {
       await axios.put(
-        `http://localhost:8000/messages/message/${deletemessage.id}/deleteforme`,
+        `/messages/message/${deletemessage.id}/deleteforme`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -226,7 +226,7 @@ export default function Chat({
   async function deleteforeveryone() {
     try {
       await axios.delete(
-        `http://localhost:8000/messages/message/${deletemessage.id}/everyone`,
+        `/messages/message/${deletemessage.id}/everyone`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         },

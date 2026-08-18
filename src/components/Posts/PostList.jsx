@@ -46,7 +46,7 @@ export default function PostList() {
     setLoading(true);
     try {
       const skip = reset ? 0 : page * limit;
-      const set = await api.get("/posts", {
+      const set = await api.get("/posts/", {
         params: { status: "published", search, limit: limit, skip: skip },
       });
       const newpost = set.data.posts || [];

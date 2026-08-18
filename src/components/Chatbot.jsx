@@ -47,7 +47,7 @@ export default function Chatbot({ user }) {
     setInput("");
     setIsLoading(true);
     try {
-      let url = `http://localhost:8000/chat/stream/${encodeURIComponent(input)}`;
+      let url = `/chat/stream/${encodeURIComponent(input)}`;
       const params = new URLSearchParams();
       if (user?.id) {
         params.append("user_id", user.id);

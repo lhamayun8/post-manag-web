@@ -14,7 +14,7 @@ export default function Requests({
   };
   async function loadRequests() {
     try {
-      const set = await axios.get("http://localhost:8000/messages/requests", {
+      const set = await axios.get("/messages/requests", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setRequests(set.data);
@@ -25,7 +25,7 @@ export default function Requests({
   async function acceptrequest(id) {
     try {
       await axios.put(
-        `http://localhost:8000/messages/${id}/accept`,
+        `/messages/${id}/accept`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -42,7 +42,7 @@ export default function Requests({
   async function declinerequest(id) {
     try {
       axios.put(
-        `http://localhost:8000/messages/${id}/decline`,
+        `/messages/${id}/decline`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

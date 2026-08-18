@@ -25,7 +25,7 @@ class State(TypedDict):
     context:Optional[Dict]
     results:Optional[List]
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
+llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0.3)
 memory=MemorySaver()
 llm_with_tools=llm
 
@@ -60,7 +60,7 @@ async def getrag(state:State)->Dict:
     same=rag.search(last,limit=3,user_id=user_id)
     print("RAG Results:",same)
     if not same:
-        return{"messages":[],"result":[]}
+        return{"messages":[],"results":[]}
     ragcontext="Here are the relevant posts from platform\n\n"
     for i,post in enumerate(same,1):
         ragcontext+=f"{i}.{post['content'][:300]}\n"

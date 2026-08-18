@@ -40,7 +40,7 @@ export default function Messages({
       }
       try {
         setLoadingSearch(true);
-        const set = await axios.get("/messages/search", {
+        const set = await api.get("/messages/search", {
           params: { find: search.trim() },
           headers,
         });
@@ -55,7 +55,7 @@ export default function Messages({
   }, [search]);
   const startChat = async (user) => {
     try {
-      const set = await axios.get("/messages/inbox", {
+      const set = await api.get("/messages/inbox", {
         headers,
       });
       const existingChat = set.data.find((chat) => chat.user_id === user.id);

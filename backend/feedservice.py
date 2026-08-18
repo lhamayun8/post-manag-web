@@ -56,7 +56,11 @@ class FeedService:
             posts.append(post_data)
 
         if cacheable:
-            setcache(cachekey,{"posts":posts,"total":total},expiry=CACHE_TTL_SECONDS)
+            setcache(
+    cachekey,
+    {"posts": posts, "total": total},
+    expire=CACHE_TTL_SECONDS
+)
             posts=posts[:limit]
 
         has_more=skip+limit<total

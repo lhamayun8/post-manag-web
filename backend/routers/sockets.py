@@ -4,7 +4,15 @@ from database import SessionLocal
 from models import Users,Message
 from datetime import datetime,timezone
 router=APIRouter()
-sio=socketio.AsyncServer(async_mode="asgi",cors_allowed_origins=["http://localhost:5173"])
+import socketio
+
+sio = socketio.AsyncServer(
+    async_mode="asgi",
+    cors_allowed_origins=[
+        "https://post-manag-app.netlify.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"]
+)
 onlineusers={}
 def utc_now():
     return datetime.now(timezone.utc)

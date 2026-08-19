@@ -125,19 +125,13 @@ export default function Profile() {
           const posts = await api.get(`/posts/user/${id}/posts`);
           const postsdata = posts.data.posts || [];
           setPost(postsdata);
-          postsdata.forEach((post) => {
-            alllikes(post.id);
-            getcomments(post.id);
-          });
+          seedFromPosts(postsdata);
         } else {
           const set = await api.get("/users/me");
           setProfile(set.data);
           const posts = await api.get("/posts/me");
           setPost(posts.data);
-          posts.data.forEach((post) => {
-            alllikes(post.id);
-            getcomments(post.id);
-          });
+          seedFromPosts(posts.data);
         }
       } catch (err) {
         setError(err.response?.data?.detail || "Failed to load profile");
@@ -148,6 +142,17 @@ export default function Profile() {
   if (!profile) {
     return <p>LOADING</p>;
   }
+  function seedFromPosts(postsdata) {
+  const likesMap = {}, likeUsersMap = {}, commentsMap = {};
+  postsdata.forEach((post) => {
+    likesMap[post.id] = post.likes?.count || 0;
+    likeUsersMap[post.id] = post.likes?.users || [];
+    commentsMap[post.id] = post.comments || [];
+  });
+  setLikes(likesMap);
+  setlikeusers(likeUsersMap);
+  setComments(commentsMap);
+}
   const myposts = posts;
   const published = myposts.filter(
     (post) => post.status === "published",

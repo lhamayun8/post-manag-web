@@ -113,9 +113,12 @@ def getuserwtoken(authorization:Optional[str]=Header(None),db:Session=Depends(ge
 
 @router.get("/me")
 def myposts(currentuser=Depends(getcurrentuser),db: Session = Depends(get_db)):
-    posts=db.query(Posts).options(load_only(Posts.id,Posts.title,Posts.category,Posts.status,Posts.image,Posts.created_at,Posts.published_at)).filter(Posts.owner_id==currentuser.id).order_by(Posts.created_at.desc()).all()
-    return[{"id":p.id,"title":p.title,"category":p.category,"status":p.status,"image":p.image,"created_at":p.created_at,"published_at":p.published_at}
-           for p in posts]
+    posts=(db.query(Posts).options(joinedload(Posts.owner),
+                                   selectinload(Posts.tagged_friends).joinedload(Tags.user),
+                                   selectinload(Posts.likes).joinedload(Like.user),
+                                   selectinload(Posts.comments).joinedload(Comment.user))
+                                   .filter(Posts.owner_id==currentuser.id).order_by(Posts.created_at.desc()).all())
+    return [post_response(p) for p in posts]
 
 def strip_data_uri(image:str):
     if image and image.startswith("data:image"):

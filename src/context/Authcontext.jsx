@@ -28,6 +28,19 @@ export default function AuthProvider({ children }) {
     fetchuser();
   }, []);
   useEffect(() => {
+  const handleAuthExpired = () => {
+    socket.disconnect()
+    localStorage.removeItem("token")
+    localStorage.removeItem("role")
+    localStorage.removeItem("user")
+    setUser(null)
+  }
+  window.addEventListener("auth-expired",handleAuthExpired)
+  return ()=>{
+    window.removeEventListener("auth-expired", handleAuthExpired);
+  }
+}, [])
+  useEffect(() => {
     if (!user) return;
     socket.connect();
     const registeruser = () => {

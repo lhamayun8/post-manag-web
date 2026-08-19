@@ -6,6 +6,7 @@ from authentication import getcurrentuser
 from routers.sockets import notify_user
 from rag import rag
 from typing import Optional
+from fastapi import BackgroundTasks
 from sqlalchemy import func
 
 
@@ -77,7 +78,29 @@ def indexuser(user_id:int,db:Session):
     except Exception:
         print("ERROR")
         return False
-    
+
+def update_rag_after_friend_removal(
+    current_user_id,
+    friend_id,
+    friendship_ids
+):
+    try:
+        rag.collection.delete(
+            ids=[f"friend_{fid}" for fid in friendship_ids]
+        )
+    except Exception as e:
+        print(f"RAG delete error: {e}")
+
+    try:
+        db = SessionLocal()
+
+        indexuser(current_user_id, db)
+        indexuser(friend_id, db)
+
+        db.close()
+
+    except Exception as e:
+        print(f"RAG re-index error: {e}")
 def get_user(user_id:int,db:Session=Depends(get_db)):
     user=db.query(Users).filter(Users.id==user_id).first()
     if not user:
@@ -200,28 +223,43 @@ def getuserprofile(user_id:int,currentuser=Depends(getcurrentuser),db:Session=De
     return{"id":user.id,"name":user.name,"email":user.email,"role":user.role}
 
 @router.delete("/{friend_id}")
-def removefriend(friend_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-    friend1=db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id==friend_id).first()
-    friend2=db.query(Friendship).filter(Friendship.user_id==friend_id,Friendship.friend_id==currentuser.id).first()
-    db.query(Friendship).filter(Friendship.user_id==currentuser.id,Friendship.friend_id==friend_id).delete()
-    db.query(Friendship).filter(Friendship.user_id==friend_id,Friendship.friend_id==currentuser.id).delete()
-    db.commit()
-    if friend1:
-        try:
-            rag.collection.delete(ids=[f"friend_{friend1.id}"])
-            print(f"Removed friendship")
-        except Exception:
-            print("Error")
-    if friend2:
-        try:
-            rag.collection.delete(ids=[f"friend_{friend2.id}"])
-            print(f"Removed friendship")
-        except Exception as e:
-            print("Error")
-    indexuser(currentuser.id,db)
-    indexuser(friend_id,db)
-    return{"message":"friend is removed"}
+def removefriend(
+    friend_id: int,
+    background_tasks: BackgroundTasks,
+    currentuser=Depends(getcurrentuser),
+    db: Session = Depends(get_db)
+):
+    friendship_ids = [
+        row[0]
+        for row in db.query(Friendship.id)
+        .filter(
+            ((Friendship.user_id == currentuser.id) & 
+             (Friendship.friend_id == friend_id))
+            |
+            ((Friendship.user_id == friend_id) & 
+             (Friendship.friend_id == currentuser.id))
+        )
+        .all()
+    ]
 
+    if not friendship_ids:
+        return {"message": "Friendship does not exist"}
+
+    db.query(Friendship).filter(
+        Friendship.id.in_(friendship_ids)
+    ).delete(synchronize_session=False)
+
+    db.commit()
+
+    # Schedule slow RAG work after the response
+    background_tasks.add_task(
+        update_rag_after_friend_removal,
+        currentuser.id,
+        friend_id,
+        friendship_ids
+    )
+
+    return {"message": "friend is removed"}
 @router.post("/index-all")
 def indexallfriendships(db:Session=Depends(get_db)):
     users=db.query(Users).all()

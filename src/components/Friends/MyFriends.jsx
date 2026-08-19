@@ -4,9 +4,13 @@ import { useNavigate } from "react-router-dom";
 export default function MyFriends() {
   const [friends, setFriends] = useState([]);
   const [error, setError] = useState("");
+  const[message,setMessage]=useState("")
   const navigate = useNavigate();
   const closeerror = () => {
     setError("");
+  };
+    const closemessage = () => {
+    setMessage("");
   };
   const getFriends = async () => {
     try {
@@ -23,6 +27,7 @@ export default function MyFriends() {
     try {
       await api.delete(`/friends/${id}`);
       setFriends((prev) => prev.filter((friend) => friend.id !== id));
+      setMessage("Friend successfully removed!!")
     } catch (err) {
       setError(error.response?.data?.detail || "Failed to remove friend");
     }
@@ -60,6 +65,12 @@ export default function MyFriends() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+         {message && (
+        <div className="message-box">
+          <span>{message}</span>
+          <button onClick={closemessage}>X</button>
         </div>
       )}
       {error && (

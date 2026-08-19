@@ -18,7 +18,7 @@ app.include_router(connections.router)
 app.include_router(chat.router)
 app.include_router(personal.router)
 app.include_router(suggestions.router)
-app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173", "https://post-manag.netlify.app/"],allow_credentials=True,
+app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173", "https://post-manag-app.netlify.app/","https://post-manag-web.vercel.app/"],allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"],)
 
 @app.on_event("startup")

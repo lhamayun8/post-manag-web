@@ -1,4 +1,10 @@
 import { io } from "socket.io-client";
-const socket=io("http://localhost:8000")
 
-export default socket
+const socket = io(
+  "https://exquisite-empathy-production-97e7.up.railway.app",
+  {
+    transports: ["websocket", "polling"],
+  }
+);
+
+export default socket;

@@ -10,10 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tabler/core": "^1.4.0",
+    "@tabler/icons-react": "^3.46.0",
     "axios": "^1.18.1",
+    "bootstrap": "^5.3.8",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1",
+    "redis": "^6.2.0",
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {

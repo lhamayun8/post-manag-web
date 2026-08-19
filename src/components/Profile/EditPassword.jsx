@@ -2,27 +2,27 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
-export default function EditPassword({setTab}) {
+export default function EditPassword({ setTab }) {
   const [passwords, setPasswords] = useState({
     currentpass: "",
     newpass: "",
     confirmpass: "",
   });
-      const closeerror=()=>{
-    setError("")
-    }
-    const closemessage=()=>{
-      setMessage("")
-    }
+  const closeerror = () => {
+    setError("");
+  };
+  const closemessage = () => {
+    setMessage("");
+  };
   const [err, setError] = useState("");
-  const[message,setMessage]=useState("")
+  const [message, setMessage] = useState("");
   const handleChange = (e) => {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setMessage("")
+    setMessage("");
     if (passwords.newpass !== passwords.confirmpass) {
       setError("Both passwords are not the same");
       return;
@@ -36,18 +36,18 @@ export default function EditPassword({setTab}) {
         },
       );
       setPasswords({ currentpass: "", newpass: "", confirmpass: "" });
-      setMessage("Password updated successfully!!")
-      setTimeout(()=>{
-        setMessage("")
-        setTab("profile")
-      },500)
+      setMessage("Password updated successfully!!");
+      setTimeout(() => {
+        setMessage("");
+        setTab("profile");
+      }, 500);
     } catch (err) {
-      if(err.response?.status===422){
-        setError("Please enter valid password of at least 8 characters.")
-      }else{
-      setError(err.response?.data?.detail ||"failed to update password");
+      if (err.response?.status === 422) {
+        setError("Please enter valid password of at least 8 characters.");
+      } else {
+        setError(err.response?.data?.detail || "failed to update password");
+      }
     }
-  }
   };
   return (
     <div className="auth-container">
@@ -82,18 +82,18 @@ export default function EditPassword({setTab}) {
         </div>
         <button type="submit">Update Password</button>
       </form>
-                    {message && (
+      {message && (
         <div className="message-box">
-        <span>{message}</span>
-        <button onClick={closemessage}>X</button>
+          <span>{message}</span>
+          <button onClick={closemessage}>X</button>
         </div>
-        )}
-         {err && (
+      )}
+      {err && (
         <div className="error-box">
-        <span>{err}</span>
-        <button onClick={closeerror}>X</button>
+          <span>{err}</span>
+          <button onClick={closeerror}>X</button>
         </div>
-        )}  
+      )}
     </div>
   );
 }

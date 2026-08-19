@@ -69,7 +69,22 @@ class PostCreate(BaseModel):
 class Taggeduser(BaseModel):
     id:int
     name:str
-    
+
+class LikeUser(BaseModel):
+    id:int
+    username:str
+
+class PostLikes(BaseModel):
+    count:int=0
+    users:list[LikeUser]=[]
+
+class PostComment(BaseModel):
+    id:int
+    content:str
+    username:str
+    created_at:datetime
+    user_id:int
+
 class Post(BaseModel):
     id:int
     title:str
@@ -82,6 +97,9 @@ class Post(BaseModel):
     published_at:Optional[datetime]=None
     username:str      
     tagged_users:list[Taggeduser]=[]
+    likes:PostLikes=PostLikes()
+    comments:list[PostComment]=[]
+    comments_total: int
     class Config:
         from_attributes=True
         
@@ -126,4 +144,10 @@ class MessageResponse(BaseModel):
     status:Optional[str]=None
     class Config:
         from_attributes=True
-    
+
+class PaginatedPosts(BaseModel):
+    total: int
+    posts: list[Post]
+
+class Interest(BaseModel):
+    interests:list[str]

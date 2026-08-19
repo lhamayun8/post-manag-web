@@ -1,15 +1,48 @@
-from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
 from dotenv import load_dotenv
 import os
+import httpx
+
 load_dotenv()
-con=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-                     MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
-                     MAIL_FROM=os.getenv("MAIL_FROM"),
-                     MAIL_PORT=int(os.getenv("MAIL_PORT")),
-                     MAIL_SERVER=os.getenv("MAIL_SERVER"),
-                     MAIL_STARTTLS=True,MAIL_SSL_TLS=False,
-                     USE_CREDENTIALS=True)
-async def sendemail(email:str,code,email_type:str):
+
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL")
+BREVO_SENDER_NAME = os.getenv("BREVO_SENDER_NAME", "PostManager")
+async def send_brevo_email(email: str, subject: str, html: str):
+
+    url = "https://api.brevo.com/v3/smtp/email"
+
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+    }
+
+    data = {
+        "sender": {
+            "name": BREVO_SENDER_NAME,
+            "email": BREVO_SENDER_EMAIL,
+        },
+        "to": [
+            {
+                "email": email
+            }
+        ],
+        "subject": subject,
+        "htmlContent": html,
+    }
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.post(
+            url,
+            headers=headers,
+            json=data
+        )
+
+    print("Brevo status:", response.status_code)
+    print("Brevo response:", response.text)
+
+    response.raise_for_status()
+async def sendemail(email:str,content:str,email_type:str):
     if email_type=="verify":
         subject="Verify Your Email - PostManager"
         heading="Email Verification"
@@ -25,8 +58,37 @@ async def sendemail(email:str,code,email_type:str):
         heading="Comment Alert"
         greeting="Someone just commented on your post!!"
         instruction="View the new comment and engage!!"
+    elif email_type=="recommendation":
+        subject="Your Post Recommendations - PostManager"
+        heading="Post Recommendations"
+        greeting="Here are some daily recommended posts based on your interests"
+        instruction="View the new posts today!!"
     else:
         raise ValueError("invalid email type")
+    if email_type in ["verify","reset"]:
+        extra_content=f"""
+        <div class="code">
+            {content}
+        </div>
+
+        <div class="note">
+            <strong>Important</strong><br>
+            • This code is valid for <strong>15 minutes</strong>.<br>
+            • Use only the most recently received code.<br>
+            • If you didn't request this, ignore this email.
+        </div>
+        """
+
+    else:
+        extra_content=f"""
+        <div style="
+            background:#f1f5f9;
+            padding:20px;
+            border-radius:10px;
+        ">
+            {content}
+        </div>
+        """
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -103,15 +165,7 @@ async def sendemail(email:str,code,email_type:str):
             <p>
                 {instruction}
             </p>
-            <div class="code">
-                {code}
-            </div>
-             <div class="note">
-                    <strong>Important</strong><br>
-                    • This code is valid for <strong>15 minutes</strong>.<br>
-                    • Use only the most recently received code.<br>
-                    • If you didn't request this, you can safely ignore this email.
-            </div>
+            {extra_content}
             <p>
                 Thank you,<br>
                 <strong>PostManager Team</strong>
@@ -126,11 +180,8 @@ async def sendemail(email:str,code,email_type:str):
     </body>
     </html>
     """
-    message = MessageSchema(
-        subject="Verify Your Email - PostManager",
-        recipients=[email],
-        body=html,
-        subtype="html",
-    )
-    fm=FastMail(con)
-    await fm.send_message(message)
+    await send_brevo_email(
+    email=email,
+    subject=subject,
+    html=html
+)

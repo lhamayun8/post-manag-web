@@ -1,103 +1,290 @@
-import React, { useState,useEffect} from 'react'
-import axios from 'axios'
-import socket from '../../socket'
-export default function Inbox({setTab,setconvoid,setreceivername,setReceiver}) {
-    const[messages,setMessages]=useState([])
-    const[error,setError]=useState("")
-    const[confirm,setconfirm]=useState(null)
-    const closeerror=()=>{
-    setError("")
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import socket from "../../socket";
+import api from "../../services/api";
+
+export default function Messages({
+  setTab,
+  setconvoid,
+  setreceivername,
+  setReceiver,
+}) {
+  const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [error, setError] = useState("");
+  const [confirm, setConfirm] = useState(null);
+  const token = localStorage.getItem("token");
+  const headers = { Authorization: `Bearer ${token}` };
+  const loadInbox = async () => {
+    try {
+      const set = await api.get("/messages/inbox", {
+        headers,
+      });
+      const chats = Array.isArray(set.data) ? set.data : [];
+      chats.sort((a, b) => new Date(b.time) - new Date(a.time));
+      setMessages(chats);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to load inbox");
     }
-    useEffect(()=>{
-      async function loadInbox(){
-        try{
-          const set= await axios.get(
-            "http://localhost:8000/messages/inbox",{headers:{
-              Authorization:`Bearer ${localStorage.getItem("token")}`,
-          }});
-          const chats=Array.isArray(set.data)?set.data:[]
-          chats.sort((a,b)=>new Date(b.time)-new Date(a.time))
-          setMessages(chats)
-        }catch(err){
-          setError(err.response?.data?.detail ||"Failed to load inbox")
-        }
+  };
+  useEffect(() => {
+    loadInbox();
+  }, []);
+  useEffect(() => {
+    const delay = setTimeout(async () => {
+      if (search.trim() === "") {
+        setUsers([]);
+        return;
       }
-      loadInbox()
-    },[]);
-    useEffect(()=>{
-      socket.on("inbox_update",(data)=>{
-      setMessages(prev=>{
-        let exist=prev.find(chat=>chat.conversation_id===data.conversation_id)
-        if(exist){
-          return prev.map(chat=>chat.conversation_id===data.conversation_id?{
-            ...chat,last_message:data.content,time:data.created_at,unread:true}:chat).sort((a,b)=>new Date(b.time)-new Date(a.time))
-          }
-          return[{conversation_id:data.conversation_id,user_id:data.user_id,user_name:data.user_name,last_message:data.content,time:data.created_at,unread:true},...prev]
-          })
-        })
-        socket.on("new_conversation",(data)=>{
-          setMessages(prev=>{
-            let exist=prev.find(chat=>chat.conversation_id===data.conversation_id)
-            if (exist){
-              return prev.map(chat=>chat.conversation_id===data.conversation_id?{
-            ...chat,last_message:data.content,time:data.created_at,unread:true}:chat).sort((a,b)=>new Date(b.time)-new Date(a.time))
-          }
-          return[{conversation_id:data.conversation_id,user_id:data.user_id,user_name:data.user_name,last_message:data.content,time:data.created_at,unread:true},...prev]
-          })
-        })
-    return()=>{socket.off("inbox_update");socket.off("new_conversation")}
-  },[])
-    const formatDate=(date)=>{
-    return new Date(date+"Z").toLocaleString("en-PK",{
-      timeZone:"Asia/Karachi",dateStyle:"medium",timeStyle:"short"
-    })
-  }
-  function textshort(text){
-    return text.split(" ").slice(0,4).join(" ")+"..."
-  }
-  async function deleteinbox(conversation_id){
-    try{
-      await axios.delete(`http://localhost:8000/messages/inbox/${conversation_id}`,{
-        headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}
-      })
-      setMessages(prev=>prev.filter(chat=>chat.conversation_id!==conversation_id))
-      setconfirm(null)
-    }catch(err){
-      setError(err.response?.data?.detail ||"Failed to delete conversation")
+      try {
+        setLoadingSearch(true);
+        const set = await api.get("/messages/search", {
+          params: { find: search.trim() },
+          headers,
+        });
+        setUsers(set.data);
+      } catch (err) {
+        setUsers([]);
+      } finally {
+        setLoadingSearch(false);
+      }
+    }, 300);
+    return () => clearTimeout(delay);
+  }, [search]);
+  const startChat = async (user) => {
+    try {
+      const set = await api.get("/messages/inbox", {
+        headers,
+      });
+      const existingChat = set.data.find((chat) => chat.user_id === user.id);
+      setReceiver(user.id);
+      setreceivername(user.name);
+      if (existingChat) {
+        setconvoid(existingChat.conversation_id);
+      } else {
+        setconvoid(null);
+      }
+      setTab("chat");
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to load old chats");
     }
-  }
-  return (
-    <div className='inbox'>
+  };
+  const openConversation = (chat) => {
+    setconvoid(chat.conversation_id);
+    setReceiver(chat.user_id);
+    setreceivername(chat.user_name);
+    setTab("chat");
+  };
+
+  const deleteInbox = async (conversationId) => {
+    try {
+      await api.delete(
+        `/messages/inbox/${conversationId}`,
+        { headers },
+      );
+      setMessages((prev) =>
+        prev.filter((chat) => chat.conversation_id !== conversationId),
+      );
+      setConfirm(null);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to delete conversation");
+    }
+  };
+
+  useEffect(() => {
+    socket.on("inbox_update", (data) => {
+      setMessages((prev) => {
+        const exists = prev.find(
+          (chat) => chat.conversation_id === data.conversation_id,
+        );
+        if (exists) {
+          return prev
+            .map((chat) =>
+              chat.conversation_id === data.conversation_id
+                ? {
+                    ...chat,
+                    last_message: data.content,
+                    time: data.created_at,
+                    unread: true,
+                  }
+                : chat,
+            )
+            .sort((a, b) => new Date(b.time) - new Date(a.time));
+        }
+        return [
+          {
+            conversation_id: data.conversation_id,
+            user_id: data.user_id,
+            user_name: data.user_name,
+            last_message: data.content,
+            time: data.created_at,
+            unread: true,
+          },
+          ...prev,
+        ];
+      });
+    });
+    socket.on("new_conversation", (data) => {
+      setMessages((prev) => {
+        const exists = prev.find(
+          (chat) => chat.conversation_id === data.conversation_id,
+        );
+        if (exists) {
+          return prev
+            .map((chat) =>
+              chat.conversation_id === data.conversation_id
+                ? {
+                    ...chat,
+                    last_message: data.content,
+                    time: data.created_at,
+                    unread: true,
+                  }
+                : chat,
+            )
+            .sort((a, b) => new Date(b.time) - new Date(a.time));
+        }
+        return [
+          {
+            conversation_id: data.conversation_id,
+            user_id: data.user_id,
+            user_name: data.user_name,
+            last_message: data.content,
+            time: data.created_at,
+            unread: true,
+          },
+          ...prev,
+        ];
+      });
+    });
+    return () => {
+      socket.off("inbox_update");
+      socket.off("new_conversation");
+    };
+  }, []);
+  const formatDate = (date) => {
+    return new Date(date + "Z").toLocaleString("en-PK", {
+      timeZone: "Asia/Karachi",
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  };
+  const textShort = (text) => {
+    if (!text) return "";
+    const words = text.split(" ");
+    if (words.length <= 4) {
+      return text;
+    }
+    return words.slice(0, 4).join(" ") + "...";
+  };
+  const closeError = () => {
+    setError("");
+  };
+ return (
+    <div className="new-message-container">
       <h2>Inbox</h2>
-      {messages.length===0 &&<p>No conversation yet!!</p>}
-      {messages.map((chat)=>(
-        <div key={chat.conversation_id} className='conversation' onClick={()=>{setconvoid(chat.conversation_id);setReceiver(chat.user_id);setreceivername(chat.user_name);setTab("chat")}}>
-            <div className="avatar">{chat.user_name?chat.user_name[0].toUpperCase():"?"}</div>
-            <div className='conversation-content'>
-            <div className='conversation-info'>
-              <h4>Username: {chat.user_name}</h4>
-              <p>{textshort(chat.last_message)}</p>
-              <small>{chat.unread && <span className='unread-dot'></span>}{formatDate(chat.time)}</small>
-            </div>
-            </div>
-            <button title="Delete chat permanently" className='delete-notification' onClick={(e)=>{e.stopPropagation();setconfirm(chat.conversation_id)}}>🗑️</button>
-            </div>
-      ))}
-      {confirm!==null && (
-          <div className='delete-popup-overlay'>
-            <div className='delete-popup'>
-              <p>Delete this chat?</p>
-              <button onClick={()=>deleteinbox(confirm)}>Delete chat</button>
-              <button className='cancel-btn' onClick={()=>setconfirm(null)}>Cancel</button>
-            </div>
+
+      <input
+        placeholder="search user..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {loadingSearch && <p>Searching...</p>}
+
+      {users.map((user) => (
+        <div
+          key={user.id}
+          className="user-card"
+          onClick={() => startChat(user)}
+        >
+          <div className="user-avatar">
+            {user.name?.[0]?.toUpperCase()}
           </div>
-        )}
-        {error && (
-        <div className="error-box">
-        <span>{error}</span>
-        <button onClick={closeerror}>X</button>
+
+          <div>
+            <h4>{user.name}</h4>
+            <p>{user.email}</p>
+          </div>
         </div>
-        )}  
+      ))}
+
+      {search.trim() === "" && (
+        <>
+          {messages.length === 0 && <p>No conversation yet!</p>}
+
+          {messages.map((chat) => (
+           <div
+            key={chat.conversation_id}
+            className="conversation"
+          >
+              <div className="avatar-small">
+                {chat.user_name
+                  ? chat.user_name[0].toUpperCase()
+                  : "?"}
+              </div>
+
+              <div
+              className="conversation-content"
+              onClick={() => openConversation(chat)}
+            >
+              <div className="conversation-info">
+                <h4>{chat.user_name}</h4>
+
+                <p>{textShort(chat.last_message)}</p>
+
+                <small>
+                  {chat.unread && <span className="unread-dot"></span>}
+                  {formatDate(chat.time)}
+                </small>
+              </div>
+            </div>
+              {confirm === chat.conversation_id ? (
+                <div
+                  className="inline-delete-confirm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span>Delete?</span>
+
+                  <button
+                    onClick={() =>
+                      deleteInbox(chat.conversation_id)
+                    }
+                  >
+                    Yes
+                  </button>
+
+                  <button
+                    onClick={() => setConfirm(null)}
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  title="Delete chat permanently"
+                  className="delete-notification"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirm(chat.conversation_id);
+                  }}
+                >
+                  🗑️
+                </button>
+              )}
+            </div>
+          ))}
+
+          {error && (
+            <div className="error-box">
+              <span>{error}</span>
+
+              <button onClick={closeError}>X</button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

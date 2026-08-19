@@ -8,11 +8,17 @@ export default function Login() {
   const [err, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
-  const closeerror=()=>{
-    setError("")
-    }
+  const closeerror = () => {
+    setError("");
+  };
   const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.name==="email"?e.target.value.toLowerCase():e.target.value });
+    setData({
+      ...data,
+      [e.target.name]:
+        e.target.name === "email"
+          ? e.target.value.toLowerCase()
+          : e.target.value,
+    });
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,20 +29,29 @@ export default function Login() {
       login(token, userdata);
       if (set.data.role === "admin") {
         navigate("/admin/dashboard");
+        return;
+      }
+      const interest = await api.get("/users/interests", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (interest.data.length === 0) {
+        navigate("/interests");
       } else {
         navigate("/posts");
       }
     } catch (err) {
-      if(err.response?.status===422){
-        setError("Please enter valid email or a password of at least 8 characters.")
-      }else{
-      setError(err.response?.data?.detail || "Login failed.");
+      if (err.response?.status === 422) {
+        setError(
+          "Please enter valid email or a password of at least 8 characters.",
+        );
+      } else {
+        setError(err.response?.data?.detail || "Login failed.");
+      }
     }
-  }
   };
 
   return (
-    <div className="auth-container">
+    <div className="login-container">
       <h2>LOGIN</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -59,16 +74,18 @@ export default function Login() {
         </div>
         <button type="submit">Login User</button>
       </form>
-       {err && (
+      {err && (
         <div className="error-box">
-        <span>{err}</span>
-        <button onClick={closeerror}>X</button>
+          <span>{err}</span>
+          <button onClick={closeerror}>X</button>
         </div>
-        )}  
+      )}
       <p>
         Dont have an account yet?<Link to="/register">Register here</Link>
       </p>
-      <p><Link to="/forgot-password">Forgot Password?</Link></p>
+      <p>
+        <Link to="/forgot-password">Forgot Password?</Link>
+      </p>
     </div>
   );
 }

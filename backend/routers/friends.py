@@ -90,17 +90,26 @@ def update_rag_after_friend_removal(
         )
     except Exception as e:
         print(f"RAG delete error: {e}")
-
     try:
         db = SessionLocal()
-
         indexuser(current_user_id, db)
         indexuser(friend_id, db)
-
         db.close()
-
     except Exception as e:
         print(f"RAG re-index error: {e}")
+def update_rag_after_accept(
+    sender_id: int,
+    receiver_id: int):
+    db = SessionLocal()
+    try:
+        indexfriendship(sender_id, db)
+        indexfriendship(receiver_id, db)
+        indexuser(sender_id, db)
+        indexuser(receiver_id, db)
+    except Exception as e:
+        print(f"RAG indexing error: {e}")
+    finally:
+        db.close()
 def get_user(user_id:int,db:Session=Depends(get_db)):
     user=db.query(Users).filter(Users.id==user_id).first()
     if not user:
@@ -175,24 +184,38 @@ def requests(currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
     return[{"id":request.id,"from":request.sender.name,"user_id":request.sender.id} for request in req]
 
 @router.put("/accept/{request_id}")
-async def acceptrequest(request_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
-     req=db.query(FriendRequests).filter(FriendRequests.id==request_id,FriendRequests.receiver_id==currentuser.id).first()
-     if not req:
-         db.close()
+async def acceptrequest(request_id:int,background_tasks: BackgroundTasks,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
+    req=db.query(FriendRequests).filter(FriendRequests.id==request_id,FriendRequests.receiver_id==currentuser.id).first()
+    if not req:
          raise HTTPException(status_code=404,detail="No request")
-     req.status="accepted"
-     user1=Friendship(user_id=req.sender_id,friend_id=req.receiver_id)
-     user2=Friendship(user_id=req.receiver_id,friend_id=req.sender_id)
-     db.add_all([user1,user2])
-     db.add(Notifcation(user_id=req.sender_id,post_id=None,message=f"{currentuser.name} accepted your friend request"))
-     db.commit()
-     indexfriendship(req.sender_id,db)
-     indexfriendship(req.receiver_id,db)
-     indexuser(req.sender_id,db)
-     indexuser(req.receiver_id,db)
-     await notify_user(req.sender_id,{"type":"friend_accept","message":f"{currentuser.name} accepted your request"})
-     return{"message":"you are now friends"}
+    req.status="accepted"
+    sender_id = req.sender_id
+    receiver_id = req.receiver_id
 
+    user1 = Friendship(
+        user_id=sender_id,
+        friend_id=receiver_id
+    )
+    user2 = Friendship(
+        user_id=receiver_id,
+        friend_id=sender_id
+    )
+    db.add_all([user1,user2])
+    db.add(Notifcation(user_id=req.sender_id,post_id=None,message=f"{currentuser.name} accepted your friend request"))
+    db.commit()
+    background_tasks.add_task(
+        update_rag_after_accept,
+        sender_id,
+        receiver_id
+    )
+    await notify_user(
+        sender_id,
+        {
+            "type": "friend_accept",
+            "message": f"{currentuser.name} accepted your request"
+        }
+    )
+    return {"message": "you are now friends"}
 @router.put("/reject/{request_id}")
 def rejectrequest(request_id:int,currentuser=Depends(getcurrentuser),db:Session=Depends(get_db)):
      req=db.query(FriendRequests).filter(FriendRequests.id==request_id,FriendRequests.receiver_id==currentuser.id).first()

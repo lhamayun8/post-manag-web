@@ -1,6 +1,14 @@
 from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
 from dotenv import load_dotenv
 import os
+import socket
+
+try:
+    sock = socket.create_connection(("smtp-relay.brevo.com", 587), timeout=10)
+    print("✅ BREVO SMTP CONNECTION SUCCESSFUL")
+    sock.close()
+except Exception as e:
+    print("❌ BREVO SMTP CONNECTION FAILED:", repr(e))
 load_dotenv()
 con=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
                      MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),

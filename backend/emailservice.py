@@ -1,22 +1,47 @@
-from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
 from dotenv import load_dotenv
 import os
-import socket
+import httpx
 
-try:
-    sock = socket.create_connection(("smtp-relay.brevo.com", 587), timeout=10)
-    print("✅ BREVO SMTP CONNECTION SUCCESSFUL")
-    sock.close()
-except Exception as e:
-    print("❌ BREVO SMTP CONNECTION FAILED:", repr(e))
 load_dotenv()
-con=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-                     MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
-                     MAIL_FROM=os.getenv("MAIL_FROM"),
-                     MAIL_PORT=int(os.getenv("MAIL_PORT")),
-                     MAIL_SERVER=os.getenv("MAIL_SERVER"),
-                     MAIL_STARTTLS=True,MAIL_SSL_TLS=False,
-                     USE_CREDENTIALS=True)
+
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL")
+BREVO_SENDER_NAME = os.getenv("BREVO_SENDER_NAME", "PostManager")
+async def send_brevo_email(email: str, subject: str, html: str):
+
+    url = "https://api.brevo.com/v3/smtp/email"
+
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+    }
+
+    data = {
+        "sender": {
+            "name": BREVO_SENDER_NAME,
+            "email": BREVO_SENDER_EMAIL,
+        },
+        "to": [
+            {
+                "email": email
+            }
+        ],
+        "subject": subject,
+        "htmlContent": html,
+    }
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.post(
+            url,
+            headers=headers,
+            json=data
+        )
+
+    print("Brevo status:", response.status_code)
+    print("Brevo response:", response.text)
+
+    response.raise_for_status()
 async def sendemail(email:str,content:str,email_type:str):
     if email_type=="verify":
         subject="Verify Your Email - PostManager"
@@ -155,11 +180,8 @@ async def sendemail(email:str,content:str,email_type:str):
     </body>
     </html>
     """
-    message = MessageSchema(
-        subject=subject,
-        recipients=[email],
-        body=html,
-        subtype="html",
-    )
-    fm=FastMail(con)
-    await fm.send_message(message)
+    await send_brevo_email(
+    email=email,
+    subject=subject,
+    html=html
+)

@@ -21,3 +21,5 @@ langgraph
 langchain-core
 apscheduler
 langchain-google-genai
+requests
+httpx

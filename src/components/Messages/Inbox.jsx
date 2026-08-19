@@ -181,82 +181,109 @@ export default function Messages({
   const closeError = () => {
     setError("");
   };
-  return (
+ return (
     <div className="new-message-container">
       <h2>Inbox</h2>
+
       <input
         placeholder="search user..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+
       {loadingSearch && <p>Searching...</p>}
+
       {users.map((user) => (
         <div
           key={user.id}
           className="user-card"
           onClick={() => startChat(user)}
         >
-          <div className="user-avatar">{user.name?.[0]?.toUpperCase()}</div>
+          <div className="user-avatar">
+            {user.name?.[0]?.toUpperCase()}
+          </div>
+
           <div>
             <h4>{user.name}</h4>
             <p>{user.email}</p>
           </div>
         </div>
       ))}
+
       {search.trim() === "" && (
         <>
           {messages.length === 0 && <p>No conversation yet!</p>}
 
           {messages.map((chat) => (
-            <div
-              key={chat.conversation_id}
-              className="conversation"
+           <div
+            key={chat.conversation_id}
+            className="conversation"
+          >
+              <div className="avatar-small">
+                {chat.user_name
+                  ? chat.user_name[0].toUpperCase()
+                  : "?"}
+              </div>
+
+              <div
+              className="conversation-content"
               onClick={() => openConversation(chat)}
             >
-              <div className="avatar-small">
-                {chat.user_name ? chat.user_name[0].toUpperCase() : "?"}
-              </div>
-              <div className="conversation-content">
-                <div className="conversation-info">
-                  <h4>{chat.user_name}</h4>
-                  <p>{textShort(chat.last_message)} </p>
-                  <small>
-                    {chat.unread && <span className="unread-dot"></span>}
+              <div className="conversation-info">
+                <h4>{chat.user_name}</h4>
 
-                    {formatDate(chat.time)}
-                  </small>
-                </div>
+                <p>{textShort(chat.last_message)}</p>
+
+                <small>
+                  {chat.unread && <span className="unread-dot"></span>}
+                  {formatDate(chat.time)}
+                </small>
               </div>
-              <button
-                title="Delete chat permanently"
-                className="delete-notification"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setConfirm(chat.conversation_id);
-                }}
-              >
-                🗑️
-              </button>
+            </div>
+              {confirm === chat.conversation_id ? (
+                <div
+                  className="inline-delete-confirm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span>Delete?</span>
+
+                  <button
+                    onClick={() =>
+                      deleteInbox(chat.conversation_id)
+                    }
+                  >
+                    Yes
+                  </button>
+
+                  <button
+                    onClick={() => setConfirm(null)}
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <button
+                  title="Delete chat permanently"
+                  className="delete-notification"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirm(chat.conversation_id);
+                  }}
+                >
+                  🗑️
+                </button>
+              )}
             </div>
           ))}
+
+          {error && (
+            <div className="error-box">
+              <span>{error}</span>
+
+              <button onClick={closeError}>X</button>
+            </div>
+          )}
         </>
-      )}
-      {confirm !== null && (
-        <div className="delete-popup-overlay">
-          <div className="delete-popup">
-            <p>Delete this chat?</p>
-            <button onClick={() => deleteInbox(confirm)}>Delete chat</button>
-            <button className="cancel-btn" onClick={() => setConfirm(null)}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-      {error && (
-        <div className="error-box">
-          <span>{error}</span>
-          <button onClick={closeError}>X</button>
-        </div>
       )}
     </div>
   );

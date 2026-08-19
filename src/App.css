@@ -4900,7 +4900,49 @@ select:focus-visible,
   border-radius: var(--radius-full);
   font-size: 12.5px;
 }
+.inline-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  white-space: nowrap;
+}
 
+.inline-delete-confirm span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+}
+
+.inline-delete-confirm button {
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.inline-delete-confirm button:first-of-type {
+  background: #dc3545;
+  color: white;
+}
+
+.inline-delete-confirm button:first-of-type:hover {
+  background: #bb2d3b;
+}
+
+.inline-delete-confirm button:last-of-type {
+  background: #e9ecef;
+  color: #333;
+}
+
+.inline-delete-confirm button:last-of-type:hover {
+  background: #d6d8db;
+}
 .chat-message {
   display: flex;
   max-width: 70%;

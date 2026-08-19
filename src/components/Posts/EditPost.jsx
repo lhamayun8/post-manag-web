@@ -6,6 +6,7 @@ export default function EditPost({ id, setTab }) {
   const [err, setError] = useState("");
   const [message, setMessage] = useState("");
   const [friends, setFriends] = useState([]);
+  const[categories,setCategories]=useState([])
   const closeerror = () => {
     setError("");
   };
@@ -60,34 +61,40 @@ export default function EditPost({ id, setTab }) {
     }
   };
   useEffect(() => {
-    const fecthfriends = async () => {
-      try {
-        const set = await api.get("/posts/friends");
-        setFriends(set.data);
-      } catch (err) {
-        setError(err.response?.data?.detail || "Failed to fetch tagged users");
-      }
-    };
-    fecthfriends();
-    const fetchpost = async () => {
-      try {
-        const set = await api.get(`/posts/${id}`);
-        setData({
-          title: set.data.title,
-          description: set.data.description,
-          category: set.data.category,
-          status: set.data.status,
-          image: set.data.image || "",
-          tagged_users: set.data
-            ? set.data.tagged_users.map((tag) => tag.id)
-            : [],
-        });
-      } catch (err) {
-        setError(err.response?.data?.detail || "Failed to load post");
-      }
-    };
-    fetchpost();
-  }, [id]);
+  const fetchData = async () => {
+    try {
+      const [friendsResponse, categoriesResponse, postResponse] =
+        await Promise.all([
+          api.get("/posts/friends"),
+          api.get("/posts/categories"),
+          api.get(`/posts/${id}`),
+        ])
+      setFriends(friendsResponse.data)
+
+      const normalizedCategories = [
+        ...new Set(
+          categoriesResponse.data
+            .filter((category) => category && category.trim() !== "")
+            .map((category) => category.trim().toLowerCase())
+            .filter((category) => category !== "2")),
+      ]
+      setCategories(normalizedCategories)
+      setData({
+        title: postResponse.data.title,
+        description: postResponse.data.description,
+        category: postResponse.data.category?.trim().toLowerCase() || "",
+        status: postResponse.data.status,
+        image: postResponse.data.image || "",
+        tagged_users: postResponse.data.tagged_users
+          ? postResponse.data.tagged_users.map((tag) => tag.id)
+          : [],
+      })
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to load edit post data")
+    }
+  }
+  fetchData()
+}, [id])
   return (
     <div className="auth-container">
       <h2>Edit Post</h2>
@@ -110,12 +117,19 @@ export default function EditPost({ id, setTab }) {
             placeholder="Description"
           ></textarea>
           <label htmlFor="category">Category</label>
-          <input
+          <select
             name="category"
             value={data.category}
             onChange={handleChange}
-            placeholder="Example:Technology,etc"
-          ></input>
+          >
+            <option value="">Select Category</option>
+
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </option>
+            ))}
+          </select>
           <label htmlFor="status">Post Status</label>
           <select
             id="status"
@@ -145,14 +159,6 @@ export default function EditPost({ id, setTab }) {
               </option>
             ))}
           </select>
-          {data.image && (
-            <div className="image-preview">
-              <p>New Image</p>
-              <div className="image-box">
-                <img src={data.image} alt="Post Preview" />
-              </div>
-            </div>
-          )}
           <label htmlFor="image">Upload new image</label>
           <input
             id="image"
@@ -161,6 +167,14 @@ export default function EditPost({ id, setTab }) {
             accept="image/*"
             onChange={handleimagechange}
           ></input>
+                    {data.image && (
+            <div className="image-preview">
+              <p>New Image</p>
+              <div className="image-box">
+                <img src={data.image} alt="Post Preview" />
+              </div>
+            </div>
+          )}
         </div>
         <button type="submit" className="btn btn-primary">
           Update

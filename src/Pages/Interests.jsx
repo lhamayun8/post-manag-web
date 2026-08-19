@@ -71,16 +71,30 @@ export default function Interests() {
     }
   };
   const saveinterest = async () => {
-    try {
-      setLoading(true);
-      const set = await api.post("/users/interests", { interests: interest });
-      setMessage("Your interest is saved!!");
-    } catch (err) {
-      setError(err.response?.data?.detail || "Unable to save user interest");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (interest.length === 0) {
+    setError("Please select at least one interest before continuing.");
+    return;
+  }
+  try {
+    setLoading(true);
+
+    await api.post("/users/interests", {
+      interests: interest,
+    });
+
+    setMessage("Your interests are saved successfully!");
+    setTimeout(() => {
+      navigate("/posts");
+    }, 800);
+
+  } catch (err) {
+    setError(
+      err.response?.data?.detail || "Unable to save user interest"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="interest-overlay">
       <div className="interest-container">

@@ -267,11 +267,6 @@ export default function Chat({
         </div>
       </div>
       <div className="chat-box" ref={chatbox}>
-        {convostatus === "pending" && (
-          <div className="request-message">
-            Message request is sent.Waiting for {receivername} to accept.
-          </div>
-        )}
         {hasMore && (
           <div className="see-more-chat">
             <button onClick={loadmoremessages}>
@@ -304,6 +299,11 @@ export default function Chat({
           </div>
         ))}
         <div ref={messageend}></div>
+        {convostatus === "pending" && (
+          <div className="request-message">
+            Message request is sent.Waiting for {receivername} to accept.
+          </div>
+        )}
       </div>
       <div className="chat-input">
         <input
